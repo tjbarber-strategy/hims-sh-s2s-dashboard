@@ -233,6 +233,27 @@ section.panel > p.lede { color: var(--him-ink-soft); font-size: 16px; margin-bot
     .sbs-grid { grid-template-columns: 1fr; }
 }
 
+/* ===== Product Performance Table ===== */
+.prod-perf-table {
+    width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 4px;
+}
+.prod-perf-table th {
+    background: var(--him-forest); color: #fff; padding: 10px 16px;
+    font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;
+    text-align: center; white-space: nowrap;
+}
+.prod-perf-table td {
+    padding: 9px 16px; text-align: center; border-bottom: 1px solid var(--him-border);
+    font-variant-numeric: tabular-nums;
+}
+.prod-perf-table tbody tr:hover { background: var(--him-cream-2); }
+.prod-perf-table tfoot td { padding: 11px 16px; background: var(--him-cream-2); }
+
+/* Heatmap cell colors */
+.cell-green { background: rgba(39,133,106,0.18); color: #1a6b50; }
+.cell-yellow { background: rgba(212,135,58,0.15); color: #a06020; }
+.cell-red { background: rgba(192,57,43,0.15); color: #a02a1e; }
+
 /* ===== Footer ===== */
 footer.foot {
     text-align: center; padding: 30px 20px; color: var(--him-muted); font-size: 12px;
@@ -346,6 +367,7 @@ footer.foot {
     <a href="#q3-best">Best S2S ads</a>
     <a href="#sbs">Signal check</a>
     <a href="#recs">Actions</a>
+    <a href="#product-table">By product</a>
     <a href="#methodology">Methodology</a>
 </nav>
 
@@ -723,6 +745,105 @@ footer.foot {
             <p>This analysis was built from CSV exports. Direct access to the Hims Looker instance would let TubeScience run analyses like this faster — validating MTA CAC by product line, iterating on hypotheses in hours instead of days, and reducing the back-and-forth on ad-hoc data pulls. If feasible, a Looker seat for the TS strategy team would make these conversations sharper and more frequent.</p>
         </div>
     </div>
+</section>
+
+<!-- ===== Product Performance Table ===== -->
+<section class="panel" id="product-table">
+    <div class="label">Product performance · TS ads</div>
+    <h2>Performance by product</h2>
+    <p class="lede" style="margin-bottom:18px;">Verified product-level breakdown of TubeScience ad performance across the Sexual Health account. Includes MTA-attributed CPA and Average Revenue Per User — metrics that go beyond the D0 S2S proxy examined above.</p>
+
+    <div style="overflow-x:auto;">
+    <table class="prod-perf-table">
+        <thead>
+            <tr>
+                <th style="text-align:left;">Product</th>
+                <th>Spend</th>
+                <th>CPA MTA + HDYHAU</th>
+                <th>ARPU</th>
+                <th>D0 Submit to Sub %</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="text-align:left;font-weight:600;">Climax Control</td>
+                <td>$673,153</td>
+                <td class="cell-yellow">$298</td>
+                <td class="cell-green">$96</td>
+                <td class="cell-green">70%</td>
+            </tr>
+            <tr>
+                <td style="text-align:left;font-weight:600;">3in1</td>
+                <td>$552,905</td>
+                <td class="cell-green">$253</td>
+                <td class="cell-yellow">$65</td>
+                <td class="cell-yellow">48%</td>
+            </tr>
+            <tr>
+                <td style="text-align:left;font-weight:600;">Hard Mints</td>
+                <td>$451,762</td>
+                <td class="cell-green">$234</td>
+                <td class="cell-green">$84</td>
+                <td class="cell-green">63%</td>
+            </tr>
+            <tr>
+                <td style="text-align:left;font-weight:600;">Testosterone</td>
+                <td>$316,185</td>
+                <td class="cell-yellow">$257</td>
+                <td class="cell-yellow">$73</td>
+                <td class="cell-yellow">54%</td>
+            </tr>
+            <tr>
+                <td style="text-align:left;font-weight:600;">All Product</td>
+                <td>$72,150</td>
+                <td class="cell-yellow">$290</td>
+                <td class="cell-yellow">$74</td>
+                <td class="cell-red">46%</td>
+            </tr>
+            <tr>
+                <td style="text-align:left;font-weight:600;">Sex Chews</td>
+                <td>$62,503</td>
+                <td class="cell-green">$229</td>
+                <td class="cell-green">$83</td>
+                <td class="cell-green">67%</td>
+            </tr>
+            <tr>
+                <td style="text-align:left;font-weight:600;">Generic Viagra</td>
+                <td>$51,642</td>
+                <td class="cell-red">$420</td>
+                <td class="cell-red">$44</td>
+                <td class="cell-red">44%</td>
+            </tr>
+            <tr>
+                <td style="text-align:left;font-weight:600;">Multivitamin</td>
+                <td>$29,133</td>
+                <td class="cell-yellow">$314</td>
+                <td class="cell-yellow">$64</td>
+                <td class="cell-red">43%</td>
+            </tr>
+            <tr>
+                <td style="text-align:left;font-weight:600;">Hair</td>
+                <td>$9,327</td>
+                <td class="cell-yellow">$336</td>
+                <td class="cell-yellow">$64</td>
+                <td class="cell-red">30%</td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr style="font-weight:800;border-top:2px solid var(--him-ink);">
+                <td style="text-align:left;">Grand Total</td>
+                <td>$2,218,761</td>
+                <td>$265</td>
+                <td>$80</td>
+                <td>59%</td>
+            </tr>
+        </tfoot>
+    </table>
+    </div>
+
+    <p style="color:var(--him-muted);font-size:12px;line-height:1.55;margin-top:14px;max-width:860px;">
+        <strong>Source:</strong> Hims internal reporting (verified by Camilla). Date range may differ slightly from the S2S analysis above (which covers 2/16–4/6 from the TS S2S export); directional spend and performance by product are consistent across both sources. All ads are TubeScience-created. Color coding: <span style="color:var(--him-positive);">green</span> = strong, <span style="color:var(--him-warn);">amber</span> = moderate, <span style="color:var(--him-negative);">red</span> = below target.
+    </p>
 </section>
 
 <!-- ===== Methodology ===== -->
