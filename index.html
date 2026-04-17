@@ -167,7 +167,9 @@ section.panel > p.lede { color: var(--him-ink-soft); font-size: 16px; margin-bot
 }
 .controls .seg button.active { background: var(--him-forest); color: var(--him-cream); }
 
-.ad-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 420px)); gap: 16px; }
+.ad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+@media (max-width: 1100px) { .ad-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 700px) { .ad-grid { grid-template-columns: 1fr; } }
 .ad-card {
     background: var(--him-white); border: 1px solid var(--him-border); border-radius: var(--radius);
     overflow: hidden; display: flex; flex-direction: column;
@@ -176,7 +178,7 @@ section.panel > p.lede { color: var(--him-ink-soft); font-size: 16px; margin-bot
 .ad-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(31,58,43,0.1); }
 .ad-card.cluster-low { border-top: 4px solid var(--him-negative); }
 .ad-card.cluster-high { border-top: 4px solid var(--him-positive); }
-.ad-card video { width: 100%; aspect-ratio: 9 / 16; min-height: 280px; max-height: 480px; background: #1A1A2E; object-fit: cover; display: block; }
+.ad-card video { width: 100%; max-height: 420px; background: #1A1A2E; object-fit: contain; display: block; }
 .ad-card .ad-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; }
 .ad-card .ad-metrics { display: flex; gap: 12px; font-size: 12px; margin-bottom: 6px; }
 .ad-card .metric { display: flex; flex-direction: column; }
@@ -224,9 +226,9 @@ section.panel > p.lede { color: var(--him-ink-soft); font-size: 16px; margin-bot
 .pill.high { background: rgba(46,107,71,0.12); color: var(--him-positive); }
 
 /* ===== Side-by-side same-hook ===== */
-.sbs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px; max-width: 800px; }
-.sbs-grid .ad-card { max-width: 380px; }
-.sbs-grid .ad-card video { max-height: 420px; }
+.sbs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px; max-width: 760px; }
+.sbs-grid .ad-card { max-width: 360px; }
+.sbs-grid .ad-card video { max-height: 380px; }
 @media (max-width: 760px) {
     .sbs-grid { grid-template-columns: 1fr; }
 }
@@ -481,7 +483,7 @@ footer.foot {
                     <span class="sub-link">Actions →</span>
                 </a>
                 <a class="sub" href="#recs">
-                    <span><strong>Looker access:</strong> TubeScience needs direct access to the Hims Looker instance to run analyses like this in hours instead of days — and to validate MTA CAC by product line without waiting for CSV exports.</span>
+                    <span><strong>Looker access:</strong> Direct access to the Hims Looker instance would let TubeScience run analyses like this faster and validate MTA CAC by product line without waiting for CSV exports.</span>
                     <span class="sub-link">Actions →</span>
                 </a>
             </div>
@@ -541,9 +543,10 @@ footer.foot {
         <div class="insight" style="border-left-color: var(--him-positive);">
             <div class="num" style="color: var(--him-positive);" id="kpi-low-cps-q1">—</div>
             <h4>But: cost per subscribe</h4>
-            <p>Spend-weighted CPS for the low-S2S cluster. Lower S2S, but subscribers are still coming in — just not on day zero.</p>
+            <p>Spend-weighted CPS across all low-S2S ads. Lower S2S, but <em>cheaper</em> subscribers — they're still converting, just not on day zero.</p>
         </div>
     </div>
+    <p style="font-size: 12px; color: var(--him-muted); margin-top: -12px; margin-bottom: 18px; font-style: italic;">* CPS is spend-weighted across all <span id="fn-low-count">—</span> ads in the low-S2S cluster, not just the 20 highest-spend ads shown below. Full-cluster CPS matches the green banner above.</p>
 
     <h3 style="font-size:20px;color:var(--him-forest);margin:22px 0 8px;font-weight:800;letter-spacing:-0.02em;">The evidence — top 20 low-S2S high-spend ads</h3>
     <p style="color:var(--him-ink-soft);font-size:14px;margin-bottom:14px;max-width:860px;">Click any card to watch. Filters below let you slice by product, motivator, or format.</p>
@@ -644,9 +647,10 @@ footer.foot {
         <div class="insight" style="border-left-color: var(--him-accent);">
             <div class="num" style="color: var(--him-accent);" id="kpi-high-cps-q3">—</div>
             <h4>Cost per subscribe</h4>
-            <p>Spend-weighted CPS for the high-S2S cluster. Higher S2S, but actually more expensive subscribers.</p>
+            <p>Spend-weighted CPS across all high-S2S ads. Higher S2S, but more expensive subscribers — S2S isn't tracking with cost.</p>
         </div>
     </div>
+    <p style="font-size: 12px; color: var(--him-muted); margin-top: -12px; margin-bottom: 18px; font-style: italic;">* CPS is spend-weighted across all <span id="fn-high-count">—</span> ads in the high-S2S cluster, not just the 20 highest-spend ads shown below.</p>
 
     <div class="commonality">
         <div class="tag-big">✓</div>
@@ -715,8 +719,8 @@ footer.foot {
         </div>
         <div class="insight">
             <div class="num">3</div>
-            <h4>Data access — TubeScience needs Looker access</h4>
-            <p>This analysis was built from CSV exports. To keep doing this kind of deep-dive quickly — and to validate MTA CAC by product line ourselves — TubeScience needs direct access to the Hims Looker instance. Ad-hoc CSV pulls create a lag that makes analyses like this harder to run, harder to iterate on, and harder to trust. A Looker seat for the TS strategy team would let us do this in hours instead of days.</p>
+            <h4>Data access — Looker access would accelerate this work</h4>
+            <p>This analysis was built from CSV exports. Direct access to the Hims Looker instance would let TubeScience run analyses like this faster — validating MTA CAC by product line, iterating on hypotheses in hours instead of days, and reducing the back-and-forth on ad-hoc data pulls. If feasible, a Looker seat for the TS strategy team would make these conversations sharper and more frequent.</p>
         </div>
     </div>
 </section>
@@ -945,16 +949,11 @@ function renderSummary() {
     if (s.low_cps) document.getElementById('kpi-low-cps').textContent = '$' + s.low_cps.toFixed(0);
     if (s.high_cps) document.getElementById('kpi-high-cps').textContent = '$' + s.high_cps.toFixed(0);
 
-    // Compute cluster CPS from ad-level data for section KPIs
-    function clusterCPS(ads) {
-        let spend = 0, subs = 0;
-        ads.forEach(a => { if (a.cps && a.cps > 0 && a.spend > 0) { spend += a.spend; subs += a.spend / a.cps; } });
-        return spend > 0 && subs > 0 ? spend / subs : null;
-    }
-    const lowCPS = clusterCPS(DATA.low_ads);
-    const highCPS = clusterCPS(DATA.high_ads);
-    if (lowCPS) document.getElementById('kpi-low-cps-q1').textContent = '$' + lowCPS.toFixed(0);
-    if (highCPS) document.getElementById('kpi-high-cps-q3').textContent = '$' + highCPS.toFixed(0);
+    // Use full-dataset cluster CPS (consistent with green banner)
+    if (s.low_cps) document.getElementById('kpi-low-cps-q1').textContent = '$' + s.low_cps.toFixed(0);
+    if (s.high_cps) document.getElementById('kpi-high-cps-q3').textContent = '$' + s.high_cps.toFixed(0);
+    document.getElementById('fn-low-count').textContent = s.low_ad_count;
+    document.getElementById('fn-high-count').textContent = s.high_ad_count;
 }
 
 function renderTrendCharts() {
