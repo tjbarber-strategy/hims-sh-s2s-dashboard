@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hims SH D0 S2S Analysis — TubeScience</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
+<style>
+:root {
+    /* Hims SH palette — warm cream, deep forest, cinnamon accent */
+    --him-cream: #F4EFE6;
+    --him-cream-2: #EDE6D6;
+    --him-forest: #1F3A2B;
+    --him-forest-2: #2D5340;
+    --him-cinnamon: #C6622E;
+    --him-cinnamon-soft: #E08A52;
+    --him-ink: #111111;
+    --him-ink-soft: #3A3A3A;
+    --him-muted: #7B7468;
+    --him-border: #D9D0BE;
+    --him-white: #FFFFFF;
+    --him-negative: #B23A2F;
+    --him-positive: #2E6B47;
+    --him-warn: #C6622E;
+
+    --radius: 10px;
+    --radius-sm: 6px;
+    --gap: 18px;
+    --shadow: 0 1px 3px rgba(31,58,43,0.08), 0 4px 14px rgba(31,58,43,0.04);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--him-cream);
+    color: var(--him-ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { font-family: 'DM Serif Display', Georgia, serif; font-weight: normal; letter-spacing: -0.01em; }
+h1 { font-size: 34px; line-height: 1.1; }
+h2 { font-size: 26px; line-height: 1.15; margin-bottom: 4px; }
+h3 { font-size: 18px; line-height: 1.25; }
+
+/* ===== Password Gate ===== */
+#gate {
+    position: fixed; inset: 0;
+    background: var(--him-forest);
+    color: var(--him-cream);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 999; padding: 24px; text-align: center;
+}
+#gate .logo { font-family: 'DM Serif Display', serif; font-size: 48px; letter-spacing: -0.02em; margin-bottom: 10px; }
+#gate .sub { font-size: 15px; color: var(--him-cream-2); opacity: 0.8; margin-bottom: 32px; max-width: 420px; }
+#gate input {
+    background: transparent; border: 1px solid var(--him-cream-2); color: var(--him-cream);
+    padding: 14px 18px; font-size: 16px; border-radius: var(--radius-sm); width: 320px; outline: none;
+    font-family: inherit; letter-spacing: 0.02em;
+}
+#gate input:focus { border-color: var(--him-cinnamon-soft); }
+#gate button {
+    margin-top: 14px; background: var(--him-cinnamon); color: var(--him-white);
+    border: none; padding: 14px 32px; font-size: 15px; font-weight: 600;
+    border-radius: var(--radius-sm); cursor: pointer; letter-spacing: 0.02em;
+    transition: background 0.15s;
+}
+#gate button:hover { background: var(--him-cinnamon-soft); }
+#gate .err { color: #FFB4A0; font-size: 13px; margin-top: 10px; min-height: 18px; }
+
+/* ===== Layout ===== */
+.wrap { max-width: 1320px; margin: 0 auto; padding: 20px; }
+header.hero {
+    background: var(--him-forest);
+    color: var(--him-cream);
+    border-radius: var(--radius);
+    padding: 36px 40px;
+    margin-bottom: var(--gap);
+    position: relative; overflow: hidden;
+}
+header.hero::before {
+    content: ""; position: absolute; right: -40px; top: -40px;
+    width: 220px; height: 220px; border-radius: 50%;
+    background: var(--him-cinnamon); opacity: 0.12;
+}
+header.hero .eyebrow { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--him-cinnamon-soft); font-weight: 600; margin-bottom: 10px; }
+header.hero h1 { color: var(--him-cream); max-width: 780px; margin-bottom: 14px; font-size: 40px; }
+header.hero .meta { color: var(--him-cream-2); opacity: 0.75; font-size: 14px; display: flex; gap: 20px; flex-wrap: wrap; }
+header.hero .meta span { display: inline-flex; align-items: center; gap: 6px; }
+header.hero .meta .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--him-cinnamon-soft); }
+
+/* ===== Nav ===== */
+nav.section-nav {
+    background: var(--him-white); border: 1px solid var(--him-border);
+    border-radius: var(--radius); padding: 8px; margin-bottom: var(--gap);
+    display: flex; gap: 4px; overflow-x: auto;
+    position: sticky; top: 10px; z-index: 10;
+    box-shadow: var(--shadow);
+}
+nav.section-nav a {
+    padding: 10px 14px; border-radius: var(--radius-sm);
+    color: var(--him-ink-soft); text-decoration: none; font-size: 13px; font-weight: 500;
+    white-space: nowrap; transition: background 0.15s;
+}
+nav.section-nav a:hover { background: var(--him-cream-2); color: var(--him-forest); }
+nav.section-nav a.active { background: var(--him-forest); color: var(--him-cream); }
+
+/* ===== Sections ===== */
+section.panel {
+    background: var(--him-white); border: 1px solid var(--him-border);
+    border-radius: var(--radius); padding: 32px; margin-bottom: var(--gap);
+    box-shadow: var(--shadow);
+}
+section.panel .label {
+    font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--him-cinnamon); font-weight: 700; margin-bottom: 10px;
+}
+section.panel > h2 { margin-bottom: 6px; color: var(--him-forest); }
+section.panel > p.lede { color: var(--him-ink-soft); font-size: 16px; margin-bottom: 24px; max-width: 860px; }
+
+/* ===== KPIs ===== */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: var(--gap); }
+.kpi {
+    background: var(--him-cream-2); border-radius: var(--radius-sm); padding: 20px;
+    border-left: 3px solid var(--him-cinnamon);
+}
+.kpi .k-label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--him-muted); margin-bottom: 8px; font-weight: 600; }
+.kpi .k-value { font-family: 'DM Serif Display', serif; font-size: 34px; color: var(--him-forest); line-height: 1; }
+.kpi .k-sub { font-size: 13px; color: var(--him-ink-soft); margin-top: 8px; }
+.kpi.danger { border-left-color: var(--him-negative); }
+.kpi.danger .k-value { color: var(--him-negative); }
+.kpi.win { border-left-color: var(--him-positive); }
+.kpi.win .k-value { color: var(--him-positive); }
+
+/* ===== Charts ===== */
+.chart-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: var(--gap); margin-top: var(--gap); }
+.chart-card {
+    background: var(--him-white); border: 1px solid var(--him-border); border-radius: var(--radius);
+    padding: 20px 24px;
+}
+.chart-card h3 { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--him-forest); margin-bottom: 16px; }
+.chart-card canvas { max-height: 300px; }
+
+/* ===== Ad cards / video grid ===== */
+.controls { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+.controls select, .controls input[type="text"] {
+    padding: 9px 12px; border: 1px solid var(--him-border); border-radius: var(--radius-sm);
+    background: var(--him-white); font-family: inherit; font-size: 13px; color: var(--him-ink);
+    min-width: 160px;
+}
+.controls .count { font-size: 13px; color: var(--him-muted); margin-left: auto; }
+.controls .seg { display: inline-flex; border: 1px solid var(--him-border); border-radius: var(--radius-sm); overflow: hidden; }
+.controls .seg button {
+    padding: 9px 14px; background: var(--him-white); border: none; font-size: 13px; cursor: pointer;
+    color: var(--him-ink-soft); font-family: inherit; font-weight: 500;
+}
+.controls .seg button.active { background: var(--him-forest); color: var(--him-cream); }
+
+.ad-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
+.ad-card {
+    background: var(--him-white); border: 1px solid var(--him-border); border-radius: var(--radius);
+    overflow: hidden; display: flex; flex-direction: column;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+.ad-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(31,58,43,0.1); }
+.ad-card.cluster-low { border-top: 4px solid var(--him-negative); }
+.ad-card.cluster-high { border-top: 4px solid var(--him-positive); }
+.ad-card video { width: 100%; aspect-ratio: 9 / 16; background: #000; object-fit: contain; display: block; }
+.ad-card .ad-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; }
+.ad-card .ad-metrics { display: flex; gap: 12px; font-size: 12px; margin-bottom: 6px; }
+.ad-card .metric { display: flex; flex-direction: column; }
+.ad-card .metric-label { font-size: 10px; color: var(--him-muted); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+.ad-card .metric-value { font-family: 'DM Serif Display', serif; font-size: 19px; color: var(--him-forest); }
+.ad-card .metric.s2s.low .metric-value { color: var(--him-negative); }
+.ad-card .metric.s2s.high .metric-value { color: var(--him-positive); }
+.ad-card .hook { font-size: 13px; color: var(--him-ink); font-style: italic; border-left: 2px solid var(--him-cinnamon); padding-left: 10px; line-height: 1.45; }
+.ad-card .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.ad-card .tag {
+    font-size: 10.5px; padding: 3px 8px; border-radius: 12px;
+    background: var(--him-cream-2); color: var(--him-forest); font-weight: 600; letter-spacing: 0.02em;
+}
+.ad-card .tag.prod { background: var(--him-forest); color: var(--him-cream); }
+.ad-card .expand {
+    background: none; border: none; color: var(--him-cinnamon); font-size: 12px; font-weight: 600;
+    cursor: pointer; text-align: left; padding: 0; margin-top: 4px; font-family: inherit;
+}
+.ad-card .transcript {
+    display: none; font-size: 12px; color: var(--him-ink-soft); line-height: 1.5;
+    background: var(--him-cream); padding: 10px 12px; border-radius: var(--radius-sm); margin-top: 6px;
+    max-height: 220px; overflow-y: auto;
+}
+.ad-card.expanded .transcript { display: block; }
+
+/* ===== Insights ===== */
+.insight-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.insight {
+    background: var(--him-cream-2); border-radius: var(--radius-sm); padding: 20px;
+    border-left: 3px solid var(--him-cinnamon);
+}
+.insight .num { font-family: 'DM Serif Display', serif; font-size: 42px; color: var(--him-cinnamon); line-height: 1; margin-bottom: 8px; }
+.insight h4 { font-size: 15px; color: var(--him-forest); margin-bottom: 6px; font-weight: 700; }
+.insight p { font-size: 13.5px; color: var(--him-ink-soft); line-height: 1.5; }
+
+/* ===== Data Table ===== */
+.data-table-wrap { overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th, .data-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--him-border); }
+.data-table th { font-size: 11px; text-transform: uppercase; color: var(--him-muted); font-weight: 700; letter-spacing: 0.08em; background: var(--him-cream); }
+.data-table tr:hover td { background: var(--him-cream); }
+.data-table .num-cell { font-variant-numeric: tabular-nums; }
+.pill { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+.pill.low { background: rgba(178,58,47,0.12); color: var(--him-negative); }
+.pill.high { background: rgba(46,107,71,0.12); color: var(--him-positive); }
+
+/* ===== Side-by-side same-hook ===== */
+.sbs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px; }
+.sbs-grid .ad-card { max-width: 100%; }
+@media (max-width: 760px) {
+    .sbs-grid { grid-template-columns: 1fr; }
+}
+
+/* ===== Footer ===== */
+footer.foot {
+    text-align: center; padding: 30px 20px; color: var(--him-muted); font-size: 12px;
+    border-top: 1px solid var(--him-border); margin-top: 30px;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--him-cream); }
+::-webkit-scrollbar-thumb { background: var(--him-border); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--him-cinnamon-soft); }
+
+/* Utility */
+.spacer-sm { height: 14px; }
+.spacer-md { height: 24px; }
+.hide { display: none !important; }
+
+/* Commonality blocks */
+.commonality {
+    display: grid; grid-template-columns: 110px 1fr; gap: 16px; padding: 20px 0;
+    border-top: 1px solid var(--him-border);
+}
+.commonality:first-child { border-top: none; padding-top: 0; }
+.commonality .tag-big {
+    font-family: 'DM Serif Display', serif; font-size: 38px; color: var(--him-cinnamon); line-height: 1;
+}
+.commonality h4 { font-size: 17px; color: var(--him-forest); margin-bottom: 8px; }
+.commonality p { font-size: 14px; color: var(--him-ink-soft); line-height: 1.55; margin-bottom: 6px; }
+.commonality .evidence { font-size: 12.5px; color: var(--him-muted); font-style: italic; }
+
+@media (max-width: 768px) {
+    header.hero { padding: 24px; }
+    header.hero h1 { font-size: 28px; }
+    section.panel { padding: 22px; }
+    .kpi .k-value { font-size: 28px; }
+    h2 { font-size: 22px; }
+    .commonality { grid-template-columns: 70px 1fr; }
+    .commonality .tag-big { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== Password Gate ===== -->
+<div id="gate">
+    <div class="logo">hims<span style="color: var(--him-cinnamon);">.</span></div>
+    <div class="sub">TubeScience · D0 Submit-to-Subscribe analysis<br>Internal use — Hims & TubeScience only</div>
+    <form id="gate-form" autocomplete="off">
+        <input type="password" id="gate-input" placeholder="Enter passphrase" autocomplete="off" autofocus>
+        <div class="err" id="gate-err"></div>
+        <button type="submit">View analysis</button>
+    </form>
+</div>
+
+<!-- ===== Dashboard ===== -->
+<div class="wrap" id="dash" style="display:none;">
+
+<header class="hero">
+    <div class="eyebrow">TubeScience × Hims · Sexual Health</div>
+    <h1>D0 Submit-to-Subscribe: What's Dragging Performance</h1>
+    <div class="meta">
+        <span><span class="dot"></span>Prepared for Brian Christensen</span>
+        <span><span class="dot"></span>ASC-1DC + Zeus_TubeScience</span>
+        <span><span class="dot"></span>Period: <span id="period"></span></span>
+        <span><span class="dot"></span>Updated 2026-04-16</span>
+    </div>
+</header>
+
+<nav class="section-nav">
+    <a href="#summary">Executive summary</a>
+    <a href="#trend">Portfolio trend</a>
+    <a href="#q1">Q1 · High-spend, low-S2S ads</a>
+    <a href="#q2">Q2 · Commonalities</a>
+    <a href="#q3">Q3 · Contrasts (low vs high)</a>
+    <a href="#sbs">Same hook, different outcome</a>
+    <a href="#recs">Recommendations</a>
+    <a href="#methodology">Methodology</a>
+</nav>
+
+<!-- ===== Executive summary ===== -->
+<section class="panel" id="summary">
+    <div class="label">Executive summary</div>
+    <h2>The drag is concentrated, not distributed.</h2>
+    <p class="lede">D0 Submit-to-Subscribe on TubeScience video has fallen ~9.5 points across the 8 weeks ending 4/6. The decline is not a portfolio-wide softening — it's two product lines (<strong>3-in-1 Pill</strong> and <strong>Sex Rx + Testosterone</strong>) dragging the blended average while <strong>Climax Control / PE, Hard Mints, and Sex Chews hold steady</strong>. The pattern is in how <em>outcome framing</em> is executed on those two product lines, not in hook archetype or visual format.</p>
+
+    <div class="kpi-grid">
+        <div class="kpi danger">
+            <div class="k-label">Portfolio S2S drop</div>
+            <div class="k-value" id="kpi-drop">—</div>
+            <div class="k-sub">2/16 → 4/6 (spend-weighted)</div>
+        </div>
+        <div class="kpi danger">
+            <div class="k-label">Low-S2S cluster avg</div>
+            <div class="k-value" id="kpi-low-s2s">—</div>
+            <div class="k-sub"><span id="kpi-low-spend">—</span> spend across <span id="kpi-low-count">—</span> ads</div>
+        </div>
+        <div class="kpi win">
+            <div class="k-label">High-S2S cluster avg</div>
+            <div class="k-value" id="kpi-high-s2s">—</div>
+            <div class="k-sub"><span id="kpi-high-spend">—</span> spend across <span id="kpi-high-count">—</span> ads</div>
+        </div>
+        <div class="kpi">
+            <div class="k-label">Benchmark (client)</div>
+            <div class="k-value">60%</div>
+            <div class="k-sub">D0 S2S target floor</div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== Trend ===== -->
+<section class="panel" id="trend">
+    <div class="label">Portfolio trend</div>
+    <h2>Weekly S2S vs. spend by product line</h2>
+    <p class="lede">Top chart: weekly spend-weighted S2S across all TS video in scope. Bottom: early (first 4 weeks) vs. late (last 4 weeks) S2S by product line. The two product lines with negative deltas are also the two scaling hardest.</p>
+    <div class="chart-row">
+        <div class="chart-card">
+            <h3>Weekly S2S — portfolio (TS video, spend-weighted)</h3>
+            <canvas id="chart-weekly"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Weekly spend — portfolio</h3>
+            <canvas id="chart-weekly-spend"></canvas>
+        </div>
+    </div>
+    <div class="spacer-md"></div>
+    <div class="chart-card">
+        <h3>Early vs late S2S by product line (Δ in points)</h3>
+        <canvas id="chart-prod-delta" style="max-height: 360px;"></canvas>
+    </div>
+</section>
+
+<!-- ===== Q1 ===== -->
+<section class="panel" id="q1">
+    <div class="label">Question 1</div>
+    <h2>Which high-spend ads are sub-optimal on D0 S2S?</h2>
+    <p class="lede">All ads below cleared the spend threshold (<strong>top 20 by spend in the low cluster</strong>) and landed below the 60% S2S benchmark. Click any card to see the full transcript. Use the filters to sort by spend, S2S, or product line.</p>
+
+    <div class="controls">
+        <select id="filter-product-low">
+            <option value="all">All products</option>
+        </select>
+        <select id="filter-motivator-low">
+            <option value="all">All motivators</option>
+        </select>
+        <select id="filter-format-low">
+            <option value="all">All formats</option>
+        </select>
+        <select id="sort-low">
+            <option value="spend">Sort: Spend (desc)</option>
+            <option value="s2s">Sort: S2S (asc)</option>
+            <option value="cps">Sort: CPS (desc)</option>
+        </select>
+        <span class="count" id="count-low"></span>
+    </div>
+    <div class="ad-grid" id="grid-low"></div>
+</section>
+
+<!-- ===== Q2 ===== -->
+<section class="panel" id="q2">
+    <div class="label">Question 2</div>
+    <h2>What do the low-S2S ads have in common?</h2>
+    <p class="lede">Four patterns hold across the low-S2S cluster. Each is evidence-backed from the spend-weighted data, not from pattern-matching by vibe.</p>
+
+    <div class="commonality">
+        <div class="tag-big">01</div>
+        <div>
+            <h4>Concentrated on two product lines</h4>
+            <p><strong>3-in-1 Pill + Sex Rx + Testosterone</strong> account for the majority of low-S2S spend despite being a minority of total portfolio spend. The same physical offer framing (triple-stack outcome promise) appears disproportionately in the low cluster.</p>
+            <div class="evidence" id="ev-prod">Evidence loading…</div>
+        </div>
+    </div>
+
+    <div class="commonality">
+        <div class="tag-big">02</div>
+        <div>
+            <h4>Outcome-framed hooks executed without credibility rails</h4>
+            <p>M-OUTCOME hooks dominate the low cluster but underperform the same motivator in the high cluster. The issue is not motivator choice — it's the <em>delivery</em>: unsupported outcome claims ("twice as hard," "17 times a month") landing without the earned proof beats that the Climax Control creative uses (Cialis® equivalence, clinical citations, husband-voice framing).</p>
+            <div class="evidence" id="ev-motivator">Evidence loading…</div>
+        </div>
+    </div>
+
+    <div class="commonality">
+        <div class="tag-big">03</div>
+        <div>
+            <h4>Hybrid Product Feature Callout format fatigue</h4>
+            <p>Non-testimonial formats (Hybrid Product Feature Callout, Presenter-led voiceover, Produced Infomercial) average substantially lower S2S than UGC Testimonial Video, and those formats skew heavily into 3-in-1 Pill and Sx+Testo. Direct-to-camera testimonial outperforms when the product line is credible; it doesn't rescue triple-stack offers.</p>
+            <div class="evidence" id="ev-format">Evidence loading…</div>
+        </div>
+    </div>
+
+    <div class="commonality">
+        <div class="tag-big">04</div>
+        <div>
+            <h4>Over-concentration on VP-F2534 (young female voice)</h4>
+            <p>A large share of low-cluster spend runs with VP-F2534 (female, 25–34, speaking about partner). When paired with weaker outcome framing, the 20-something wife persona compounds skepticism for a buyer who skews older. The high cluster uses more balanced persona mix and tighter proof choreography.</p>
+            <div class="evidence" id="ev-persona">Evidence loading…</div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== Q3 ===== -->
+<section class="panel" id="q3">
+    <div class="label">Question 3</div>
+    <h2>Where low and high diverge, dimension by dimension</h2>
+    <p class="lede">The same lens, applied to both clusters. Each chart is spend-weighted S2S — so a bar represents "what you actually get when you spend a dollar here."</p>
+
+    <div class="chart-row">
+        <div class="chart-card">
+            <h3>S2S by motivator — low vs high</h3>
+            <canvas id="chart-motivator"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>S2S by visual format — low vs high</h3>
+            <canvas id="chart-format"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>S2S by hook archetype — low vs high</h3>
+            <canvas id="chart-hook"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>S2S by voice persona — low vs high</h3>
+            <canvas id="chart-persona"></canvas>
+        </div>
+    </div>
+
+    <div class="spacer-md"></div>
+
+    <h3 style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--him-forest);margin-bottom:12px;">High-S2S cluster — same creative dimensions, different execution</h3>
+    <div class="controls">
+        <select id="filter-product-high">
+            <option value="all">All products</option>
+        </select>
+        <select id="sort-high">
+            <option value="spend">Sort: Spend (desc)</option>
+            <option value="s2s">Sort: S2S (desc)</option>
+        </select>
+        <span class="count" id="count-high"></span>
+    </div>
+    <div class="ad-grid" id="grid-high"></div>
+</section>
+
+<!-- ===== Same-hook pair ===== -->
+<section class="panel" id="sbs">
+    <div class="label">Execution matters more than concept</div>
+    <h2>Same hook. 38 points of S2S difference.</h2>
+    <p class="lede">Both ads open with "Yes, we had sex 17 times last month — THIS was the secret." One lands; one drags. Watch them back to back. The hook is not the issue.</p>
+    <div class="sbs-grid" id="sbs-grid"></div>
+</section>
+
+<!-- ===== Recommendations ===== -->
+<section class="panel" id="recs">
+    <div class="label">Recommendations</div>
+    <h2>What to do about it — this week, next sprint, and in data</h2>
+    <div class="insight-grid">
+        <div class="insight">
+            <div class="num">1</div>
+            <h4>Immediate (this week)</h4>
+            <p>Pause the top 3 lowest-S2S high-spend ads (single Before-After 3-in-1 Pill ad alone drives ~15–20% of portfolio drag). Redirect spend into the top 5 proven Climax Control / Hard Mints variants.</p>
+        </div>
+        <div class="insight">
+            <div class="num">2</div>
+            <h4>2-week creative</h4>
+            <p>Rebuild 3-in-1 Pill and Sx+Testo concepts around the Climax Control proof choreography: active-ingredient equivalence, clinical citation framing, partner-voice testimonial. Kill the triple-stack outcome promise without proof rails.</p>
+        </div>
+        <div class="insight">
+            <div class="num">3</div>
+            <h4>Format rebalance</h4>
+            <p>Down-weight Hybrid Product Feature Callout on 3-in-1 Pill and Sx+Testo. Move budget into Direct-to-Camera Testimonial with V-ACTOR persona that reads 35+. VP-F2534 is over-indexed in low cluster.</p>
+        </div>
+        <div class="insight">
+            <div class="num">4</div>
+            <h4>Data asks</h4>
+            <p>Need: D0 conversion lag curve (how long after submit does Subscribe happen?), subscribe cancellation rate by ad within 7 days, and whether "compounded disclosure" triggers a measurable drop-off on submit. Ready to collaborate on the instrumentation.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== Methodology ===== -->
+<section class="panel" id="methodology">
+    <div class="label">Methodology</div>
+    <h2>How to read this</h2>
+    <p class="lede">Data: TS S2S AllUp (495 ads) and TS S2S Weekly (9 dates, 2/16–4/6), scoped to campaigns <code>Zeus_20251114_Prospecting_Sales_ZeusASC-1DC</code> and <code>Zeus_20250110_Prospecting_Sales_Zeus_TubeScience</code>. Creative features (motivator, hook archetype, visual format, voice persona, sales formula, transcript) are LLM-classified against TubeScience's canonical taxonomy. All aggregate S2S figures are <strong>spend-weighted</strong>, not simple means. "Low cluster" = ads with S2S below portfolio weighted average; "high cluster" = ads at or above. Top-20 cards in each cluster are ranked by spend.</p>
+</section>
+
+<footer class="foot">
+    <div>TubeScience · Creative Strategy · Prepared for Hims Sexual Health</div>
+    <div style="margin-top: 4px;">Internal · Do not forward outside of Hims or TubeScience</div>
+</footer>
+
+</div>
+
+<script>
+// ========== Embedded data ==========
+const DATA = {"summary": {"portfolio_spend": 1526637.0, "portfolio_s2s": 0.5996990803314737, "low_s2s": 0.3983791198182133, "high_s2s": 0.6904645385298911, "benchmark": 0.6, "low_spend": 474402.0, "high_spend": 1052235.0, "low_ad_count": 24, "high_ad_count": 42, "drop_pts": 9.577108133478662, "week_start": "2026-02-16", "week_end": "2026-04-06"}, "low_ads": [{"ad_id": "120238526688360472", "name": "20260209_TS_1.33.15-VideoTS-J530V1C-Adapt1-P9-3in1Pill-SW3SexOutcomes-SexFrequency-FB-MF-ShortGFX_Video_3in1Pill_GHSHFS_GST_3in1LP", "campaign": "Zeus_20251114_Prospecting_Sales_ZeusASC-1DC", "product": "Hims 3-in-1 Pill with Sildenafil", "spend": 79512.0, "s2s": 0.2315, "cps": 249.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120238526688360472.mp4", "launch": "2026-02-11", "motivator": "M-OUTCOME", "motivator_variant": "Faster, Stronger Erections", "hook_archetype": "Before-After", "visual_format": "Product Demo Infomercial Video", "visual_style": "Elevated Native", "voice_persona": "", "sales_formula": "OAS+", "hook": "Yes, get hard TWICE as fast.", "transcription": "Yes, get hard TWICE as fast. Yes, get hard TWICE as fast* The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not approve or verify compounded drugs for safety, effectiveness, or quality. This prescription product requires an online consultation with a healthcare provider who will determine if a prescription is appropriate. Restrictions apply. See website for full details and important safety information. so you can go back to how sex was before. 3-in-1 Pill through hims Sildenafil, the same active ingredient as Viagra\u00ae, has been shown to help men get hard 2x as fast.* Simulated Interaction. Viagra\u00ae is not compounded. Viagra is FDA approved fo", "cluster": "low"}, {"ad_id": "120239534642570472", "name": "20260304_TS_1.33.23-VideoTS-J547V1B-Adapt2-P9-3in1Pill-SW2ErectionIssues-IngredientsGFX-FB-FF-NewFormat_Video_3in1Pill_GHSHFS_GST_3in1LP", "campaign": "Zeus_20251114_Prospecting_Sales_ZeusASC-1DC", "product": "Hims 3-in-1 ED Pill", "spend": 53736.0, "s2s": 0.4108, "cps": 256.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120239534642570472.mp4", "launch": "2026-03-04", "motivator": "M-PROBLEM", "motivator_variant": "Erection Issues / ED", "hook_archetype": "Curiosity-Gap", "visual_format": "Produced Infomercial Video", "visual_style": "Produced TS Hybrid", "voice_persona": "", "sales_formula": "PAS+", "hook": "Before trying a pill for weak erections, watch THIS. ED affects about 30 million men in the US.", "transcription": "Before trying a pill for weak erections, Before trying a pill for weak erections, Actor portrayals watch THIS. watch THIS ED affects about 30 million men ED affects about 30 million men in the US. UNITED STATES OF AMERICA And often, and often, diet or exercise alone diet or exercise alone is NOT enough to treat it. is NOT enough to treat it. This treatment option through Hims combines Tadalafil Sildenafil This treatment option through Hims combines two powerful ingredients The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not approve or verify compounded drugs for safety, effectiveness, or quality. This prescription product requires an onlin", "cluster": "low"}, {"ad_id": "120239914199670472", "name": "20260316_TS_1.41.2-VideoTS-J534V1B-Adapt1-P6SexRxTestosterone-SW3SexOutcomes-NoScheduling-FB-FF-Skit_Video_Testosterone_EDT.2in1.TH1_GST_EDTLP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims Sex Rx + Testosterone Support", "spend": 41056.0, "s2s": 0.3453, "cps": 242.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120239914199670472.mp4", "launch": "2026-03-17", "motivator": "M-OUTCOME", "motivator_variant": "Improved Sexual Performance & Confidence", "hook_archetype": "Challenge-Dare", "visual_format": "UGC Video Skits", "visual_style": "Elevated Native", "voice_persona": "none", "sales_formula": "PAS+", "hook": "Step forward into the circle if your man can't get erect without planning to take a pill before sex. It's honestly such a mood killer.", "transcription": "Most men don't know THIS erection secret Step forward into the circle if your man can't get erect without planning to take a pill before sex. Actor portrayals It's honestly such a mood killer. It's honestly such a mood killer. I mean who schedules sex? I mean who schedules sex? Girl... I know! Girl... I know! Well, my man's pill isn't like that. Well, my man's pill isn't like that. Wait, really? Wait, really? He switched over to Sex Rx + Testosterone Support through Hims. He switched over to Sex Rx + Testosterone Support through Hims. The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not approve or certify compounded drugs for safety, effect", "cluster": "low"}, {"ad_id": "120237518315430472", "name": "20260113_TS_1.30.23-VideoTS-J347V1B-Adapt1-P6SexRxTestosterone-SW5AIDAExplainer-TrioPodcast-FB-TF-vf9_Video_Testosterone_EDT.2in1.TH1_GST_EDTLP", "campaign": "Zeus_20251114_Prospecting_Sales_ZeusASC-1DC", "product": "Hims Sex Rx + Testosterone Support", "spend": 40826.0, "s2s": 0.4816, "cps": 245.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120237518315430472.mp4", "launch": "2026-01-13", "motivator": "M-PROBLEM", "motivator_variant": "Lack of Spontaneous Intimacy / ED", "hook_archetype": "Curiosity-Gap", "visual_format": "UGC Organic Content Video", "visual_style": "Elevated Native", "voice_persona": "VP-F2534", "sales_formula": "PAS+", "hook": "I can't stay erect. Wait, so you never have spontaneous sex with your wife?! No, never! Literally all of our intimacy has to take place in a very specific window. So you have a cal", "transcription": "Scheduling Sex?! Cute or Mood-killer I can't stay erect. Actor portrayals Wait, so you never have spontaneous sex with your wife?! No, never! Literally all of our intimacy has to take place in a very specific window. So you have a calendar invite every time you have sex? I just have to plan ahead because I have to take a pill before. Okay, that used to be me and my husband before I discovered Sex Rx + Testosterone Support Sex Rx + Testosterone Support through Hims. Okay, wait, I dated a guy who had a prescription for that. There were like, no complaints, like zero complaints. Okay. All right. So, so what's so different about this? He takes one pill daily, so there's no more setting alarms or", "cluster": "low"}, {"ad_id": "120239758018000472", "name": "20260309_TS_1.33.39-VideoTS-J581V1C-Adapt1-P9-3in1Pill-SW3SexOutcomes-OpenAdapt-FB-FF-NewGC_Video_3in1Pill_GHSHFS_GST_3in1LP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims 3-in-1 Pill", "spend": 30371.0, "s2s": 0.5009, "cps": 205.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120239758018000472.mp4", "launch": "2026-03-10", "motivator": "M-OUTCOME", "motivator_variant": "M-OUTCOME \n\u2192 Improved sexual performance / confidence", "hook_archetype": "Curiosity-Gap", "visual_format": "UGC Testimonial Video", "visual_style": "Elevated Native", "voice_persona": "VP-F2534", "sales_formula": "PS", "hook": "Weak erections?", "transcription": "Weak erections? Weak erections? This 3-in-1 pill through Hims THIS 3-in-1 Pill through Hims brought our sex life back to what it used to be. brought our sex life back to what it used to be Actor portrayals 3-in-1 Pill Stay hard longer Fast-acting with sildenafil Long-lasting with tadalafil Added Support with vitamin B-12 hims FDA APPROVED Simulated Interaction. It combines Tadalafil and Sildenafil, all in one, To help men get hard to help men get hard and stay hard again. and stay hard again. No office visits. No office visits No pharmacy pickups. No pharmacy pickups No insurance required. No insurance required Take the quiz to get started today. Take the quiz Get started today hims The feat", "cluster": "low"}, {"ad_id": "120238950919700472", "name": "20260223_TS_1.28.48-VideoTS-J567V1B-Adapt3-P4MultiProduct-SW2ErectionIssues-SingleClaims-FB-MF-WoT_Video_Generic_BetterChoices_GST_AllLP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims ED Quiz", "spend": 29891.0, "s2s": 0.5157, "cps": 250.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120238950919700472.mp4", "launch": "2026-02-24", "motivator": "M-OUTCOME", "motivator_variant": "M-OUTCOME \n\u2192 Improved sexual performance/erections", "hook_archetype": "Testimonial-Lead", "visual_format": "UGC Organic Content Video", "visual_style": "Native", "voice_persona": "VP-F2534", "sales_formula": "OS", "hook": "", "transcription": "My man gets SO erect now :D Gentle reminder that Hims has helped hundreds of thousands of men with ED and you can get started right now with the free quiz below! Actor portrayal Get started today hims The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not approve or verify compounded drugs for safety, effectiveness, or quality. This prescription product requires an online consultation with a healthcare provider who will determine if a prescription is appropriate. Restrictions apply. See website for full details and important safety information.", "cluster": "low"}, {"ad_id": "120238942266450472", "name": "20260223_TS_1.33.23-VideoTS-J547V1B-Adapt2-P9-3in1Pill-SW2ErectionIssues-IngredientsGFX-FB-FF-NewFormat_Video_3in1Pill_GHSHFS_GST_3in1LP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims Personalized ED Pill (Tadalafil + Sildenafil)", "spend": 16721.0, "s2s": 0.3756, "cps": 243.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120238942266450472.mp4", "launch": "2026-02-24", "motivator": "M-OUTCOME", "motivator_variant": "Enhanced Sexual Performance", "hook_archetype": "Contrast-Reveal", "visual_format": "Produced Infomercial Video", "visual_style": "Produced TS Hybrid", "voice_persona": "", "sales_formula": "AIDA+", "hook": "Before trying a pill for weak erections, watch THIS ED affects about 30 million men in the US. And often, diet or exercise alone is NOT enough to treat it.", "transcription": "Before trying a pill for weak erections, Before trying a pill for weak erections, watch THIS watch THIS Actor portrayals ED affects about 30 million men ED affects about 30 million men in the US. UNITED STATES OF AMERICA And often, and often, diet or exercise alone diet or exercise alone is NOT enough to treat it. is NOT enough to treat it. This treatment option through Hims combines This treatment option through Hims combines Tadalafil Sildenafil The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not approve or verify compounded drugs for safety, effectiveness, or quality. This prescription product requires an online consultation with a heal", "cluster": "low"}, {"ad_id": "120237345759170472", "name": "20260112_TS_1.35.9-VideoTS-J476V1C-Adapt1-P1SexRxClimaxControl-SW1PremEjac-334TalentTest2-FB-FF-DTC_Video_ClimaxControl_CCT3v3_GST_CCLP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims Sex Rx + Climax Control (PE & ED Treatment)", "spend": 15948.0, "s2s": 0.5393, "cps": 232.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120237345759170472.mp4", "launch": "2026-01-14", "motivator": "M-OUTCOME", "motivator_variant": "M-OUTCOME \n\u2192 Longer-lasting sex & stronger erections", "hook_archetype": "Curiosity-Gap", "visual_format": "UGC Testimonial Video", "visual_style": "Elevated Native", "voice_persona": "VP-F2534", "sales_formula": "OS", "hook": "My hubby wanted to last longer in bed and THIS is how he did it. If your man ejaculates too soon, three out of five times you have sex, Sex Rx + Climax Control through Hims changed", "transcription": "My hubby wanted to last longer in bed and THIS is how he did it. My hubby wanted to last longer in bed and THIS is how he did it Actor portrayal If your man ejaculates too soon, three out of five times you have sex, If your man ejaculates too soon 3 out of 5 times Sex Rx + Climax Control through Hims changed everything for us. Sex Rx + Climax Control through Hims The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not approve or verify compounded drugs for safety, effectiveness, or quality. The FDA does not inspect or approve compounded drugs. A healthcare provider who will determine if a prescription is appropriate and safe will determine if ", "cluster": "low"}, {"ad_id": "120236536782550472", "name": "20251222_TS_1.30.23-VideoTS-J347V1B-Adapt1-P6SexRxTestosterone-SW5AIDAExplainer-TrioPodcast-FB-TF-vf9_Video_Testosterone_EDT.2in1.TH1_GST_EDTLP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims Sex Rx + Testosterone Support Assessment", "spend": 15328.0, "s2s": 0.4234000000000001, "cps": 216.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120236536782550472.mp4", "launch": "2025-12-22", "motivator": "M-OUTCOME", "motivator_variant": "M-OUTCOME \u2192 Spontaneous intimacy & stronger erections", "hook_archetype": "Contrast-Reveal", "visual_format": "UGC Organic Content Video", "visual_style": "Produced TS Hybrid", "voice_persona": "VP-F2534", "sales_formula": "PAS+", "hook": "I can't stay erect. Wait, so you never have spontaneous sex with your wife?!", "transcription": "Scheduling Sex?! Cute or Mood-killer I can't stay erect. Actor portrayals Wait, so you never have spontaneous sex with your wife?! No, never! Literally all of our intimacy has to take place in a very specific window. So you have a calendar invite every time you have sex? I just have to plan ahead because I have to take a pill before. Okay, that used to be me and my husband before I discovered Sex Rx + Testosterone Support through Hims. Okay, wait, I dated a guy who had a prescription for that. There were like, no complaints, like zero complaints. Okay. All right. So what's so different about this? He takes one pill daily, so there's no more setting alarms or planning ahead of time to take th", "cluster": "low"}, {"ad_id": "120239914731330472", "name": "20260316_(Partnership)_TS_1.42.20-VideoTS-TSMediaJ-J538V1B-Adapt1-P1SexRxClimaxControl-SW1PremEjac-GreenMorphSuitConcept-FB-FF-Skit_Video_ClimaxControl_CCT3v3_GST_CCLP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Sex Rx + Climax Control (Tadalafil + PE Treatment)", "spend": 14847.0, "s2s": 0.3948, "cps": 306.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120239914731330472.mp4", "launch": "2026-03-17", "motivator": "M-PROBLEM", "motivator_variant": "M-PROBLEM \n\u2192 Premature Ejaculation / Performance Anxiety", "hook_archetype": "Challenge-Dare", "visual_format": "UGC Video Skits", "visual_style": "Produced TS Hybrid", "voice_persona": "VP-F2534", "sales_formula": "PAS+", "hook": "", "transcription": "Ejaculating too soon?! Over or under 40? These three men ejaculate prematurely. Actor portrayals And my job is to guess which one is under 40? Correct. Okay. Step backwards if you had sex with your wife less than 10 times last month. He's the youngest, for sure. Wait, what? I'm scared I'm gonna finish too quickly, so I just avoid it. Hold on. My man used to be just like you before he started. The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not approve or verify compounded drugs for safety, effectiveness, or quality. Only a licensed pharmacy may prepare a compounded drug. The prescribing provider who will determine if a prescription is appr", "cluster": "low"}, {"ad_id": "120237837745130472", "name": "20250806_TS_(Partnership)1.26.24-Media-VideoTS-J449V1A-Adapt1-P1SexRxClimaxControl-SW3FemaleFriendConvo-PodcastRefresh-FB-FF-vf9_Video_ClimaxControl_CCT3v3_GST_CCLP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims Sex Rx + Climax Control (Tadalafil + Fluoxetine)", "spend": 12717.0, "s2s": 0.5913, "cps": 263.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120237837745130472.mp4", "launch": "2026-01-27", "motivator": "M-PROBLEM", "motivator_variant": "M-PROBLEM -> Sexual performance anxiety / Erectile dysfunction", "hook_archetype": "Curiosity-Gap", "visual_format": "Produced Infomercial Video", "visual_style": "Produced TS Hybrid", "voice_persona": "none", "sales_formula": "PAS+", "hook": "Why does my husband ejaculate early and lose his erection? Sexual performance anxiety is really a form of psychogenic", "transcription": "Reply to hikingbikingandeggs's comment Why does my husband ejaculate early and lose his erection? Actor portrayals Sexual performance anxiety is Dr. Peter Stahl Urologist - SVP Men's Sexual Health, Hims really a form of psychogenic Dr. Peter Stahl Urologist - SVP Men's Sexual Health, Hims erectile dysfunction. Dr. Peter Stahl Urologist - SVP Men's Sexual Health, Hims Their anxiety creates ED, Dr. Peter Stahl Urologist - SVP Men's Sexual Health, Hims which creates more anxiety Dr. Peter Stahl Urologist - SVP Men's Sexual Health, Hims and before they know it, they're in a vicious cycle. Dr. Peter Stahl Urologist - SVP Men's Sexual Health, Hims I really view the treatment Dr. Peter Stahl Urolog", "cluster": "low"}, {"ad_id": "120239774448650472", "name": "20260309_TS_1.33.31-VideoTS-J584V1A-Adapt1-P9-3in1Pill-SW3SexOutcomes-SexFrequency-FB-FF-ShortGFXVideo_3in1Pill_GHSHFS_GST_3in1LP", "campaign": "Zeus_20251114_Prospecting_Sales_ZeusASC-1DC", "product": "Hims 3-in-1 Pill (Sildenafil, Tadalafil, Vitamin B-12)", "spend": 12033.0, "s2s": 0.4413, "cps": 289.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120239774448650472.mp4", "launch": "2026-03-09", "motivator": "M-OUTCOME", "motivator_variant": "Increased Sexual Performance/Frequency", "hook_archetype": "Curiosity-Gap", "visual_format": "Produced Infomercial Video", "visual_style": "Produced TS Hybrid", "voice_persona": "VP-F2534", "sales_formula": "OS", "hook": "Yes, we had sex 17 times last month and THIS was the secret key!", "transcription": "Yes, we had sex 17 times last month and THIS was the secret key! YES, we had sex 17 times last month and THIS was the secret key! Actor portrayal The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not approve or verify compounded drug product for safety, effectiveness, or quality. The compounding pharmacy prepares compounded drug products for a patient only after a licensed healthcare provider who will determine if a prescription is appropriate. Restrictions apply. See website for full details and important safety information. 3-in-1 pill Stay hard longer Fast-acting with sildenafil Long-lasting with tadalafil Added Support with vitamin B-12 ", "cluster": "low"}, {"ad_id": "120238939973210472", "name": "20260223_TS_1.33.21-VideoTS-J565V1C-Adapt1-P9-3in1Pill-SW3SexOutcomes-HeaderGFX-FB-TF-ShortGFX_Video_3in1Pill_GHSHFS_GST_3in1LP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims 3-in-1 Pill", "spend": 11380.0, "s2s": 0.474, "cps": 248.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120238939973210472.mp4", "launch": "2026-02-24", "motivator": "M-OUTCOME", "motivator_variant": "Enhanced sexual performance", "hook_archetype": "Curiosity-Gap", "visual_format": "Visual-Selling Infomercial Video", "visual_style": "Elevated Brand", "voice_persona": "VP-F2534", "sales_formula": "OS", "hook": "Our date night this week was life changing...", "transcription": "Our date night this week was life changing... Our date night this week was life changing... all because he took THIS all because he took THIS 3-in-1 Pill through hims Get hard quicker with sildenafil Stay hard longer* with tadalafil Added support with vitamin B-12 *Based on a 3-month placebo-controlled study of 160 patients who had erectile dysfunction and premature ejaculation (PE). 50.5% of participants reported daily tadalafil (5mg) improved control of ejaculation and satisfaction with sex. 29.4% reported daily sildenafil (20mg) improved follow-up erectile dysfunction scores. In a treatment for erectile dysfunction and premature ejaculation. Asian Journal of Urology 2018; 5(4): 261-266. S", "cluster": "low"}, {"ad_id": "120237874905030472", "name": "20260126_TS_1.33.15-VideoTS-J530V1C-Adapt1-P9-3in1Pill-SW3SexOutcomes-SexFrequency-FB-MF-ShortGFX_Video_3in1Pill_GHSHFS_GST_3in1LP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "hims 3-in-1 Pill", "spend": 10624.0, "s2s": 0.2923, "cps": 255.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120237874905030472.mp4", "launch": "2026-01-27", "motivator": "M-OUTCOME", "motivator_variant": "Improved sexual performance / speed of erection", "hook_archetype": "Before-After", "visual_format": "Product Demo Infomercial Video", "visual_style": "Produced TS Hybrid", "voice_persona": "none", "sales_formula": "OS", "hook": "Yes, get hard twice as fast,", "transcription": "Yes, get hard twice as fast, Yes, get hard TWICE as fast* The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not approve nor verify compounded drugs for safety, effectiveness, or quality. Prescribing practices require an online consultation with a healthcare provider who will determine if a prescription is appropriate. Restrictions apply. See website for full details and important safety information. so you can go back to how sex was before. 3-in-1 Pill through hims Sildenafil, the same active ingredient as Viagra\u00ae, has been shown to help men get hard 2x as fast.* Simulated interaction. *Study on a subset of 17 patients with lifelong prematur", "cluster": "low"}, {"ad_id": "120235126064840472", "name": "20251125_TS_1.31.22-VideoTS-J341V1A-Upgrade1-P1SexRxClimaxControl-SW5AIDAExplainer-JennySmiles-FB-TF-vf5_Video_ClimaxControl_CCT3v3_GST_CCLP", "campaign": "Zeus_20251114_Prospecting_Sales_ZeusASC-1DC", "product": "Hims Sex Rx + Climax Control (Personalized Pills for PE/ED)", "spend": 10289.0, "s2s": 0.5959, "cps": 486.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120235126064840472.mp4", "launch": "2025-11-25", "motivator": "M-PROBLEM", "motivator_variant": "Solve Premature Ejaculation & Erectile Dysfunction", "hook_archetype": "Curiosity-Gap", "visual_format": "UGC Testimonial Video", "visual_style": "Elevated Native", "voice_persona": "VP-F2534", "sales_formula": "PAS+", "hook": "Okay, okay, so. You know how my man has been struggling with early climax and is getting a little bit anxious about it?", "transcription": "Okay, okay, so. My husband used to ejaculate prematurely until THIS You know how my man has been struggling with early climax and is getting a little bit anxious about it? Actor portrayal Sex Rx + Climax Control through Hims changed everything for us Sex Rx + Climax Control through Hims changed everything for us. It's made with It's made with the same active ingredients the same active ingredient as Cialis\u00ae + PE treatment as Cialis plus PE treatment. So now, my husband So now, my husband is getting stronger erections is getting stronger erections *Based on a 24-month placebo-controlled study of 160 patients who had erectile dysfunction and premature ejaculation (aged 18-65). Participants pre", "cluster": "low"}, {"ad_id": "120240448753060472", "name": "20260330_TS_1.42.50-VideoTS-J611V1B-Adapt3-P1SexRxClimaxControl-SW1PremEjac-Q&A-FB-FF-vfMixed_Video_ClimaxControl_CCT3v3_GST_CCLP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims Sex Rx + Climax Control", "spend": 10215.0, "s2s": 0.4205, "cps": 315.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120240448753060472.mp4", "launch": "2026-03-31", "motivator": "M-PROBLEM", "motivator_variant": "M-PROBLEM \n\u2192 Solve Premature Ejaculation", "hook_archetype": "Curiosity-Gap", "visual_format": "UGC Testimonial Video", "visual_style": "Elevated Native", "voice_persona": "VP-F2534", "sales_formula": "AIDA+", "hook": "Questions I get asked about my hubby's penis How often was he ejaculating prematurely before he looked into treatment? Like three out of five times we had sex. How long does he las", "transcription": "Questions I get asked about my hubby's penis Questions I get asked about my hubby's penis Actor portrayal How often was he ejaculating prematurely before he looked into treatment? \"How often was he ejaculating prematurely before he looked into treatment?\" Like three out of five times we had sex. Like 3 out of 5 times we had sex. How long does he last now? \"How long does he last now?\" Since he was prescribed Sex Rx + Climax Control through Hims? Since he was prescribed Sex Rx + Climax Control through Hims? Let's just say I can barely keep up with him. Let's just say I can barely keep up with him. Did he have to go to the doctor's office to get a prescription? \"Did he have to go to the doctor'", "cluster": "low"}, {"ad_id": "120239304525020472", "name": "20260302_TS_1.38.33-VideoTS-J550V1C-Adapt1-P1SexRxClimaxControl-SW1PremEjac-TextingAboutAvoidance-FB-FF-ConvoText_Video_ClimaxControl_CCT3v3_GST_CCLP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims Sex Rx + Climax Control", "spend": 9697.0, "s2s": 0.5568, "cps": 249.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120239304525020472.mp4", "launch": "2026-03-03", "motivator": "M-PROBLEM", "motivator_variant": "M-PROBLEM \n\u2192 Embarrassment from premature ejaculation", "hook_archetype": "Curiosity-Gap", "visual_format": "UGC Video Skits", "visual_style": "Produced TS Hybrid", "voice_persona": "VP-F2534", "sales_formula": "OAS+", "hook": "This early climax secret saved our sex life A few weeks ago, I realized why my husband had been avoiding intimacy. It was because he would always climax early and feel embarrassed ", "transcription": "This early climax secret saved our sex life THIS early climax secret saved our sex life Actor portrayals A few weeks ago A few weeks ago, I realized why my husband had been avoiding intimacy. Actor portrayals It was because he would always climax early It was because he would always climax early and feel embarrassed about it. and feel embarrassed about it. But he was also too embarrassed But he was also too embarrassed to see a doctor about it. to see a doctor about it. We didn't know what to do. We didn't know what to do. Then I discovered this treatment option through Hims. Then I discovered this treatment option through Hims. The featured product is a compounded drug product and has not b", "cluster": "low"}, {"ad_id": "120240448122700472", "name": "20260330_TS_1.42.48-VideoTS-J635V1C-Upgrade1-P1SexRxClimaxControl-SW1PremEjac-NewSmashCut-FB-FF-vfMixed_Video_ClimaxControl_CCT3v3_GST_CCLP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims Sex Rx + Climax Control (Tadalafil + PE Treatment)", "spend": 9635.0, "s2s": 0.3413, "cps": 449.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120240448122700472.mp4", "launch": "2026-03-31", "motivator": "M-PROBLEM", "motivator_variant": "M-PROBLEM \n\u2192 Premature Ejaculation / Performance Anxiety", "hook_archetype": "Curiosity-Gap", "visual_format": "UGC Testimonial Video", "visual_style": "Elevated Native", "voice_persona": "VP-F2534", "sales_formula": "PAS+", "hook": "My hubby couldn't control ejaculation until THIS If your man is struggling with early climax and getting anxious about it, Sex Rx + Climax Control through Hims changed everything f", "transcription": "My hubby couldn't control ejaculation until THIS My hubby couldn't control ejaculation until THIS Actor portrayals If your man is struggling with early climax and getting anxious about it, If your man is struggling with early climax and getting anxious about it, Sex Rx + Climax Control Sex Rx + Climax Control through Hims changed everything for us. The featured product is a compounded drug product. The FDA does not approve or verify compounded drugs for safety, effectiveness, or quality. This prescription product requires an online consultation with a healthcare provider who will determine if a prescription is appropriate. Restrictions apply. See website for full details and important safety", "cluster": "low"}, {"ad_id": "120240450011300472", "name": "20260330_TS_1.44.2-VideoTS-J586V1B-Adapt2-P9-3in1Pill-SW2ErectionIssues-LikeTHIS-FB-FF-GsUGC_Video_3in1Pill_GHSHFS_GST_3in1LP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims 3-in-1 ED Pill with Tadalafil and Sildenafil", "spend": 9545.0, "s2s": 0.1684, "cps": 177.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120240450011300472.mp4", "launch": "2026-03-31", "motivator": "M-PROBLEM", "motivator_variant": "M-PROBLEM \n Weak Erections / ED", "hook_archetype": "Curiosity-Gap", "visual_format": "UGC Testimonial Video", "visual_style": "Produced TS Hybrid", "voice_persona": "VP-F2534", "sales_formula": "PS", "hook": "If your man's erections look like THIS when you're in the mood, It's time to check out Hims. This 3-in-1 pill can help him get hard quicker", "transcription": "If your man's erections look like THIS If your man's erections look like THIS Actor portrayals when you're in the mood, It's time to check out Hims. It's time to check out Hims Actor portrayals This 3-in-1 pill can help him get hard quicker This 3-in-1 pill can help him get hard quicker The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not approve or verify compounded drugs for safety, effectiveness, or quality. This prescription product requires a prescription with a healthcare provider who will determine if a prescription is appropriate. Restrictions apply. See website for full details and important safety information. and stay hard longer", "cluster": "low"}, {"ad_id": "120240148396980472", "name": "20260323_TS_1.21.28-VideoTS-J545V1A-Adapt1-P7SexRxMultivitamin-SW3SexOutcomes-ScheduleOpenerUGC-FB-FF-Skit_Video_SexRxMultivitamin_MV.TH1_GST_EMVLP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims Sex Rx + Multivitamin", "spend": 8158.0, "s2s": 0.3116, "cps": 385.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120240148396980472.mp4", "launch": "2026-03-24", "motivator": "M-OUTCOME", "motivator_variant": "M-OUTCOME \n\nImproved sexual performance and spontaneity", "hook_archetype": "UGC-Native", "visual_format": "UGC Testimonial Video", "visual_style": "Elevated Native", "voice_persona": "VP-F2534", "sales_formula": "PAS+", "hook": "Yeah, so my husband couldn't stay erect, so he literally started scheduling sex on our calendar to make sure he took his pills on time. But then, he got prescribed Sex Rx + Multivi", "transcription": "My husband: \"Are you free to have sex at 10:30 on Tues?\" Actor portrayals Yeah, so my husband couldn't stay erect, so he literally started scheduling sex on our calendar to make sure he took his pills on time. Actor portrayals But then, he got prescribed Sex Rx + Multivitamin through Hims. The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not approve or verify compounded drugs for safety, effectiveness, or quality. This prescription product is not an FDA-approved drug for safety, effectiveness, or quality. This prescription product will be dispensed by a healthcare provider who will determine if a prescription is appropriate. Restrictions ap", "cluster": "low"}], "high_ads": [{"ad_id": "120235615772410472", "name": "20251203_TS_(Whitelist)12.15.27-VideoTS-MediaJ237V1A-WL-More3-P2HardMints-SW2TFValueProps-WeakErectionsAsks-FB-TF-vf24_Video_HardMinTS_(Whitelist)TEDPDontWork_GST_HMLP", "campaign": "Zeus_20251114_Prospecting_Sales_ZeusASC-1DC", "product": "Hard Mints through Hims", "spend": 104700.0, "s2s": 0.6670999999999999, "cps": 235.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120235615772410472.mp4", "launch": "2025-12-03", "motivator": "M-OUTCOME", "motivator_variant": "M-OUTCOME \n\u2192 Improved sexual performance", "hook_archetype": "", "visual_format": "UGC Video Skits", "visual_style": "Elevated Native", "voice_persona": "none", "sales_formula": "nan", "hook": "", "transcription": "", "cluster": "high"}, {"ad_id": "120239135043000472", "name": "20260223_TS_1.36.15-VideoTS-J546V1C-Upgrade1-P2HardMints-SW3SexOutcomes-HeadersOpeners-FB-MF-ShortGFX_Video_HardMints_TEDPDontWork_GST_HMLP", "campaign": "Zeus_20251114_Prospecting_Sales_ZeusASC-1DC", "product": "Hims Hard Mints (Sildenafil/Tadalafil)", "spend": 91787.0, "s2s": 0.6614, "cps": 265.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120239135043000472.mp4", "launch": "2026-02-24", "motivator": "M-OUTCOME", "motivator_variant": "M-OUTCOME \u2192 Improved sexual performance/frequency", "hook_archetype": "Before-After", "visual_format": "Produced Infomercial Video", "visual_style": "Elevated Native", "voice_persona": "VP-F2534", "sales_formula": "OS", "hook": "Yes, we went from having sex once a week to six times in 10 days.", "transcription": "Yes, we went from having sex once a week to six times in 10 days. Yes, we went from having sex once a week to 6 times in 10 days The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not approve or verify compounded drugs for safety, effectiveness, or quality. This prescription product requires an online consultation with a healthcare provider who will determine if a prescription is appropriate. Restrictions apply. See website for full details and important safety information. Because of this. Check out Hard Mints through Hims. Hard Mints\u00ae through Hims Get hard quicker with sildenafil Stay Hard longer with tadalafil Added support with vitamin B-", "cluster": "high"}, {"ad_id": "120238526688310472", "name": "20260209_TS_1.30.54-VideoTS-J379V1C-Adapt1-P6SexRxTestosterone-SW2TFValueProps-PersonaTesting-FB-TF-vf24_Video_Testosterone_EDT.2in1.TH1_GST_EDTLP", "campaign": "Zeus_20251114_Prospecting_Sales_ZeusASC-1DC", "product": "Hims Spontaneous Sex (Sex Rx + Testosterone Support)", "spend": 71482.0, "s2s": 0.7368000000000001, "cps": 256.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120238526688310472.mp4", "launch": "2026-02-09", "motivator": "M-PROBLEM", "motivator_variant": "M-PROBLEM \n Declining Sex Life / ED", "hook_archetype": "Curiosity-Gap", "visual_format": "UGC Video Skits", "visual_style": "Elevated Native", "voice_persona": "VP-F3544", "sales_formula": "OAS+", "hook": "", "transcription": "At 43, I thought my sex life was OVER until this Actor portrayals Spontaneous Sex Sex Rx + Testosterone Support Stronger Erections with daily tadalafil Testosterone Support with zinc Blood Circulation with L-Arginine Cell & Immune Function with B6 and B12 The featured product is a compounded drug product. The FDA does not approve or verify compounded drug products. This is not necessarily an exhaustive list of ingredients or information on adverse reactions. This product is not intended to diagnose, treat, cure, or prevent any disease. Consult with a healthcare provider who can determine if a prescription is appropriate. Restrictions apply. See website for full details and important safety i", "cluster": "high"}, {"ad_id": "120237837771400472", "name": "20251231_TS_(Partnership)12.15.36-Media-VideoTS-J461V1B-Upgrade1-P2HardMints-SW2ErectionIssues-MarriedRetired-FB-MF-ShortGFX_Video_HardMints_TEDPDontWork_GST_HMLP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims Hard Mints", "spend": 65649.0, "s2s": 0.6231, "cps": 260.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120237837771400472.mp4", "launch": "2026-01-27", "motivator": "M-OUTCOME", "motivator_variant": "Enhanced sexual performance and intimacy", "hook_archetype": "Curiosity-Gap", "visual_format": "Product Demo Infomercial Video", "visual_style": "Produced TS Hybrid", "voice_persona": "VP-F3544", "sales_formula": "OS", "hook": "We've had sex every night this week", "transcription": "We've had sex every night this week We've had sex every night this week Actor portrayals The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not approve or verify compounded drugs for safety, effectiveness, or quality. This prescription product requires an online consultation with a healthcare provider who will determine if a prescription is appropriate. Restrictions apply. See website for full details and important safety information. for the first time in 8 years... for the first time in 8 years... Because of this. Check out Hard Mints\u00ae through Hims Check out Hard Mints through Hims hims hard mints wintergreen Hard Mints\u00ae through Hims Get ha", "cluster": "high"}, {"ad_id": "120241427518810472", "name": "20260408_TS_1.33.52-VideoTS-J612V1A-Adapt1-P9-3in1Pill-SW2ErectionIssues-TrioPod-FB-FF-Podcast_Video_3in1Pill_GHSHFS_GST_3in1LP", "campaign": "Zeus_20251114_Prospecting_Sales_ZeusASC-1DC", "product": "Hims 3-in-1 Pill", "spend": 55721.0, "s2s": 0.635, "cps": 271.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120241427518810472.mp4", "launch": "2026-04-08", "motivator": "M-OUTCOME", "motivator_variant": "M-OUTCOME \n Improved sexual performance / Multiple rounds", "hook_archetype": "Curiosity-Gap", "visual_format": "UGC Organic Content Video", "visual_style": "Elevated Native", "voice_persona": "VP-F2534", "sales_formula": "PAS+", "hook": "So every time that I ejaculate, it just takes me so long again to get hard. Wait, so you never go multiple rounds with your wife? No, never. Because by the time that I can get hard", "transcription": "Can't get erect to have sex twice? So every time that I ejaculate, it just takes me so long again to get hard. Actor portrayals Wait, so you never go multiple rounds with your wife? No, never. Because by the time that I can get hard again, she's literally already falling asleep. Okay, confession. That was me and my husband before we discovered the 3-in-1 Pill through Hims. I dated a guy once that had a prescription for that! Let me just say, I had no complaints. Like, zero complaints... So what's the difference between this pill and the other different pills? Yeah, it's a compounded pill made with multiple powerful ingredients. So it helps him stay hard longer and get hard again twice as fas", "cluster": "high"}, {"ad_id": "120238108482930472", "name": "20260202_TS_1.36.15-VideoTS-J546V1C-Upgrade1-P2HardMints-SW3SexOutcomes-HeadersOpeners-FB-MF-ShortGFX_Video_HardMints_TEDPDontWork_GST_HMLP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims Hard Mints Wintergreen", "spend": 42278.0, "s2s": 0.7031000000000001, "cps": 215.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/c_1443115540535681.mp4", "launch": "2026-02-02", "motivator": "M-OUTCOME", "motivator_variant": "M-OUTCOME \n\u2192 Improved sexual performance and frequency", "hook_archetype": "Before-After", "visual_format": "UGC Testimonial Video", "visual_style": "Elevated Native", "voice_persona": "generic", "sales_formula": "OS", "hook": "Yes, we went from having sex once a week to 6 times in 10 days.", "transcription": "Yes, we went from having sex once a week to 6 times in 10 days. Yes, we went from having sex once a week to 6 times in 10 days Actor portrayal The featured product is a compounded drug product. The FDA does not approve or verify compounded drugs for safety, effectiveness, or quality. This prescription product requires an online consultation with a healthcare provider who will determine if a prescription is appropriate. Restrictions apply. See website for full details and important safety information. Because of this. Simulated interaction Check out Hard Mints through Hims. Hard Mints\u00ae through Hims Get hard quicker with the same active ingredient as Viagra\u00ae Stay hard longer with the same acti", "cluster": "high"}, {"ad_id": "120238959552720472", "name": "20260223_TS_1.38.20-VideoTS-J527V1B-Adapt3-P1SexRxClimaxControl-SW3SexOutcomes-TalentPerformanceFocused-FB-FF-NewGC_Video_ClimaxControl_CCT3v3_GST_CCLP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims Sex Rx + Climax Control", "spend": 38363.0, "s2s": 0.8258, "cps": 252.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120238959552720472.mp4", "launch": "2026-02-24", "motivator": "M-OUTCOME", "motivator_variant": "M-OUTCOME \n\u2192 Improved Sexual Performance/Stamina", "hook_archetype": "Curiosity-Gap", "visual_format": "UGC Testimonial Video", "visual_style": "Elevated Native", "voice_persona": "VP-F2534", "sales_formula": "OAS+", "hook": "Ladies, you are NOT ready for him to do this in bed. When my husband said he was trying a new early climax treatment,", "transcription": "Ladies, you are NOT ready for him to do this in bed. Ladies you are NOT ready for him to do this in bed Actor portrayal When my husband said he was trying When my husband said he was trying a new early climax treatment, a new early climax treatment The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not approve or verify compounded drugs for safety, effectiveness, or quality. This prescription product requires an online consultation with a healthcare provider who will determine if a a prescription is appropriate. Restrictions apply. See website for full details and important safety information. I thought, I thought \"okay, great, maybe he'll la", "cluster": "high"}, {"ad_id": "120239534642580472", "name": "20260304_TS_12.15.54-VideoTS-J554V1C-Adapt3-P5SexChews-SW3SexOutcomes-FrequencyFormats-FB-FF-NewGC_Video_SexChews_WildSideV3_GST_SCLP", "campaign": "Zeus_20251114_Prospecting_Sales_ZeusASC-1DC", "product": "Hims Sex Chews (Tadalafil and Sildenafil)", "spend": 37742.0, "s2s": 0.7204, "cps": 240.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120239534642580472.mp4", "launch": "2026-03-05", "motivator": "M-PROBLEM", "motivator_variant": "M-PROBLEM \n Weak erections", "hook_archetype": "Curiosity-Gap", "visual_format": "Produced Infomercial Video", "visual_style": "Produced TS Hybrid", "voice_persona": "none", "sales_formula": "PS", "hook": "", "transcription": "Weak erections? Actor portrayals Weak erections? Actor portrayals Sex Chews through Hims Actor portrayals Combine tadalafil and sildenafil Actor portrayals 84% of Hims customers say they feel more ready and prepared for sex when using treatment^ ^Based on responses from Q&A surveyed Hims users. No insurance required No insurance required No pharmacy pickups No insurance required No pharmacy pickups No office visits No insurance required No pharmacy pickups No office visits Actor portrayals Take the quiz to get started today! Actor portrayals Take the quiz to get started today! Actor portrayals Get started today hims Get started today hims The featured product is a compounded drug product and", "cluster": "high"}, {"ad_id": "120238960823020472", "name": "20260223_TS_1.38.22-VideoTS-J551V1A-Upgrade1-P1SexRxClimaxControl-SW3SexOutcomes-BoomAdapt-FB-FF-vfBouquet_Video_ClimaxControl_CCT3v3_GST_CCLP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims Sex Rx + Climax Control 4-in-1 Treatment", "spend": 37054.0, "s2s": 0.7962, "cps": 205.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120238960823020472.mp4", "launch": "2026-02-24", "motivator": "M-OUTCOME", "motivator_variant": "M-OUTCOME \n\u2192 Enhanced Sexual Performance", "hook_archetype": "Curiosity-Gap", "visual_format": "Visual-Selling Infomercial Video", "visual_style": "Produced TS Hybrid", "voice_persona": "", "sales_formula": "OS", "hook": "", "transcription": "Yes! We had sex 5 times last weekend! Actor portrayals The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not test products or verify compounded drug for safety, effectiveness, or quality. This prescription drug product may not be compounded by all pharmacies. A healthcare provider who will determine if a prescription is appropriate. Restrictions apply. See website for full details and important safety information. Last longer Sex Rx + Climax Control 4-in-1 Stronger erections with tadalafil Last longer* in bed with tadalafil Spontaneous sex with daily treatment Increased confidence with tadalafil Simulated Interaction. hims Get started today!", "cluster": "high"}, {"ad_id": "120240148975540472", "name": "20260323_TS_1.33.52-VideoTS-J612V1A-Adapt1-P9-3in1Pill-SW2ErectionIssues-TrioPod-FB-FF-Podcast_Video_3in1Pill_GHSHFS_GST_3in1LP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims 3-in-1 Pill", "spend": 29983.0, "s2s": 0.6505, "cps": 207.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120240148975540472.mp4", "launch": "2026-03-24", "motivator": "M-OUTCOME", "motivator_variant": "Improved sexual performance / Multiple rounds of sex", "hook_archetype": "Curiosity-Gap", "visual_format": "UGC Organic Content Video", "visual_style": "Produced TS Hybrid", "voice_persona": "VP-MIXED", "sales_formula": "PAS+", "hook": "So every time that I ejaculate, it just takes me so long again to get hard. Wait, so you never go multiple rounds with your wife? No, never. Because by the time that I can get hard", "transcription": "Can't get erect to have sex twice? So every time that I ejaculate, it just takes me so long again to get hard. Actor portrayals Wait, so you never go multiple rounds with your wife? No, never. Because by the time that I can get hard again, she's literally already falling asleep. Okay, confession. That was me and my husband before we discovered the 3-in-1 Pill through Hims. I dated a guy once that had a prescription for that! Let me just say, I had no complaints. Like, zero complaints... So what's the difference between this pill and the other different pills? Yeah, it's a compounded pill made with multiple powerful ingredients. So it helps him stay hard longer and get hard again twice as fas", "cluster": "high"}, {"ad_id": "120239506194410472", "name": "20260303_TS_1.38.22-VideoTS-J551V1A-Upgrade1-P1SexRxClimaxControl-SW3SexOutcomes-BoomAdapt-FB-FF-vfBouquet_Video_ClimaxControl_CCT3v3_GST_CCLP", "campaign": "Zeus_20251114_Prospecting_Sales_ZeusASC-1DC", "product": "Hims Sex Rx + Climax Control 4-in-1", "spend": 27577.0, "s2s": 0.8173999999999999, "cps": 243.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120239506194410472.mp4", "launch": "2026-03-03", "motivator": "M-OUTCOME", "motivator_variant": "M-OUTCOME \u2192 Improved Sexual Performance & Confidence", "hook_archetype": "Curiosity-Gap", "visual_format": "Produced Infomercial Video", "visual_style": "Produced TS Hybrid", "voice_persona": "VP-F2534", "sales_formula": "OS", "hook": "", "transcription": "Yes! We had sex 5 times last weekend! Actor portrayals The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not test products or verify compounded drug product safety, effectiveness, or quality. This prescription product may not be appropriate for everyone. Only a healthcare provider who will determine if a prescription is appropriate. Restrictions apply. See website for full details and important safety information. Last longer Sex Rx + Climax Control Stronger erections with tadalafil Last longer* in bed with tadalafil 4-in-1 Increased confidence with tadalafil Spontaneous sex with daily treatment hims Simulated Interaction. Get started today!", "cluster": "high"}, {"ad_id": "120240945183750472", "name": "20260402_TS_1.42.33-VideoTS-J590V1C-More3-P1SexRxClimaxControl-SW1PremEjac-CozyPodcasts-FB-FF-Podcast_Video_ClimaxControl_CCT3v3_GST_CCLP", "campaign": "Zeus_20251114_Prospecting_Sales_ZeusASC-1DC", "product": "Hims Tadalafil + PE Treatment", "spend": 24668.0, "s2s": 0.6, "cps": 221.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120240945183750472.mp4", "launch": "2026-04-03", "motivator": "M-OUTCOME", "motivator_variant": "Improved sexual performance and satisfaction", "hook_archetype": "Curiosity-Gap", "visual_format": "UGC Organic Content Video", "visual_style": "Elevated Native", "voice_persona": "VP-MIXED", "sales_formula": "OAS!", "hook": "We haven't had sex in three months because he ejaculates so fast. He gets so anxious and nervous, like it kinda feels like a chore. Ugh, I feel ya! That used to be us until he disc", "transcription": "Why she's finally having sex every day again We haven't had sex in three months because he ejaculates so fast. Actor portrayals He gets so anxious and nervous, like it kinda feels like a chore. Ugh, I feel ya! That used to be us until he discovered this treatment through Hims. The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not approve or verify compounded drug for safety, effectiveness, or quality. The prescribing of any compounded drug is at the discretion of a healthcare provider who will determine if a prescription is appropriate. Restrictions apply. See website for full details and important safety information. Now we're having sex ev", "cluster": "high"}, {"ad_id": "120239758760510472", "name": "20260309_TS_1.33.45-VideoTS-J627V1C-Adapt2-P9-3in1Pill-SW2ErectionIssues-AmbientGentle-FB-FF-WoT_Video_3in1Pill_GHSHFS_GST_3in1LP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims 3-in-1 Pill with Sildenafil, Tadalafil, and Vitamin B-12", "spend": 24500.0, "s2s": 0.6393, "cps": 275.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120239758760510472.mp4", "launch": "2026-03-10", "motivator": "M-PROBLEM", "motivator_variant": "M-PROBLEM \n Overcome Erectile Dysfunction", "hook_archetype": "Curiosity-Gap", "visual_format": "Produced Infomercial Video", "visual_style": "Elevated Native", "voice_persona": "none", "sales_formula": "PS", "hook": "", "transcription": "Life is too short for weak erections. Actor portrayal Have sex like you used to. Check out this 3-in-1 pill through Hims Actor portrayal with sildenafil and tadalafil, plus vitamin B-12. To help you get harder, faster. Take the free online assessment at the link below. Take back your sex life. Get started today hims The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not approve or verify compounded drugs for safety, effectiveness, or quality. This prescription product requires a prescription from a healthcare provider who will determine if a prescription is appropriate. Restrictions apply. See website for full details and important safety inf", "cluster": "high"}, {"ad_id": "120230695684090472", "name": "20250910_TS_(Whitelist)12.15.27-VideoTS-MediaJ237V1A-WL-More3-P2HardMints-SW2TFValueProps-WeakErectionsAsks-FB-TF-vf24_Video_HardMinTS_(Whitelist)TEDPDontWork_GST_HMLP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims Hard Mints", "spend": 22080.0, "s2s": 0.6637000000000001, "cps": 211.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120230695684090472.mp4", "launch": "2025-09-11", "motivator": "M-PROBLEM", "motivator_variant": "M-PROBLEM \n\u2192 Weak erections", "hook_archetype": "Curiosity-Gap", "visual_format": "Produced Infomercial Video", "visual_style": "Produced TS Hybrid", "voice_persona": "", "sales_formula": "PS", "hook": "Weak erections?", "transcription": "Weak erections? Weak erections? Actor Portrayals Check out Hard Mints through Hims. Check out Hard Mints\u00ae through Hims Actor Portrayals The featured product is a compounded drug product. The FDA does not approve or verify compounded drugs for safety, effectiveness, or quality. This prescription product requires an online consultation with a healthcare provider who will determine if a prescription is appropriate. Restrictions apply. See website for full details and important safety information. hard mints\u2122 wintergreen Hard Mints\u00ae through Hims Get hard quicker with sildenafil Stay hard longer with tadalafil Added support with B-12 hims Compounded for you 18+ years Simulated interaction hims Ge", "cluster": "high"}, {"ad_id": "120240147580550472", "name": "20260323_TS_1.42.33-VideoTS-J590V1C-More3-P1SexRxClimaxControl-SW1PremEjac-CozyPodcasts-FB-FF-Podcast_Video_ClimaxControl_CCT3v3_GST_CCLP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims Tadalafil + PE Treatment", "spend": 21711.0, "s2s": 0.7262000000000001, "cps": 233.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120240147580550472.mp4", "launch": "2026-03-24", "motivator": "M-PROBLEM", "motivator_variant": "M-PROBLEM \n\u2192 Premature Ejaculation / Performance Anxiety", "hook_archetype": "UGC-Native", "visual_format": "UGC Organic Content Video", "visual_style": "Elevated Native", "voice_persona": "VP-F2534", "sales_formula": "PAS+", "hook": "We haven't had sex in three months because he ejaculates so fast. He gets so anxious and nervous, and like, it kinda feels like a chore. Ugh, I feel ya! That used to be us until he", "transcription": "Why she's finally having sex every day again We haven't had sex in three months because he ejaculates so fast. Actor portrayals He gets so anxious and nervous, and like, it kinda feels like a chore. Ugh, I feel ya! That used to be us until he discovered this treatment through Hims. The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not approve or verify compounded drug for safety, effectiveness, or quality. This product is for prescription use only. Consult with a healthcare provider who will determine if a prescription is appropriate. Restrictions apply. See website for full details and important safety information. Now we're having sex ever", "cluster": "high"}, {"ad_id": "120238871135240472", "name": "20260217_TS_1.37.4-VideoTS-J521V1A-Upgrade1-P1SexRxClimaxControl-SW1PremEjac-GFXProspecting-FB-TF-ShortGFX_Video_ClimaxControl_CCT3v3_GST_CCLP", "campaign": "Zeus_20251114_Prospecting_Sales_ZeusASC-1DC", "product": "Hims Sex Rx + Climax Control", "spend": 20719.0, "s2s": 0.7714, "cps": 278.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120238871135240472.mp4", "launch": "2026-02-17", "motivator": "M-OUTCOME", "motivator_variant": "M-OUTCOME \n\nImproved sexual performance & confidence", "hook_archetype": "Before-After", "visual_format": "UGC Testimonial Video", "visual_style": "Produced TS Hybrid", "voice_persona": "VP-F2534", "sales_formula": "PAS+", "hook": "My hubby used to ejaculate early like 3 out of 5 times we had sex...", "transcription": "My hubby used to ejaculate early like My hubby USED to ejaculate early like Actor portrayals 3 out of 5 times we had sex... 3 out of 5 times we had sex... Actor portrayals until THIS until THIS Last longer Sex Rx + Climax Control Stronger erections with tadalafil Last longer in bed* with PE treatment Spontaneous sex with daily treatment Increased confidence with tadalafil Get started today! Get started today! Get started today hims *Based on a 3-month placebo-controlled study of 160 patients who had erectile dysfunction and premature ejaculation. Low-dose (0.5mg) daily dapoxetine prevented daily tadalafil (5.0mg) resulted in improved erectile function and ejaculatory latency vs. placebo grou", "cluster": "high"}, {"ad_id": "120238526688340472", "name": "20260209_TS_(Partnership)12.15.36-Media-VideoTS-J461V1B-Upgrade1-P2HardMints-SW2ErectionIssues-MarriedRetired-FB-MF-ShortGFX_Video_HardMints_TEDPDontWork_GST_HMLP", "campaign": "Zeus_20251114_Prospecting_Sales_ZeusASC-1DC", "product": "Hims Hard Mints", "spend": 19297.0, "s2s": 0.6081, "cps": 211.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120238526688340472.mp4", "launch": "2026-02-09", "motivator": "M-OUTCOME", "motivator_variant": "Improved Sexual Performance", "hook_archetype": "Before-After", "visual_format": "Product Demo Infomercial Video", "visual_style": "Produced TS Hybrid", "voice_persona": "VP-F2534", "sales_formula": "OS", "hook": "We've had sex every night this week for the first time in 8 years...", "transcription": "We've had sex every night this week We've had sex every night this week for the first time in 8 years... for the first time in 8 years... Actor portrayals The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not approve or verify compounded drugs for safety, effectiveness, or quality. This prescription product requires an online consultation with a healthcare provider who will determine if a prescription is appropriate. Restrictions apply. See website for full details and important safety information. Because of this, check out Hard Mints through Hims. hims Check out Hard Mints\u00ae through Hims Actor portrayals The featured product is a compounded", "cluster": "high"}, {"ad_id": "120240151345490472", "name": "20260323_(Partnership)_TS_1.41.16-VideoTS-TSMediaJ-J347V1B-Adapt1-P6SexRxTestosterone-SW5AIDAExplainer-TrioPodcast-FB-TF-vf9_Video_Testosterone_EDT.2in1.TH1_GST_EDTLP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims Sex Rx + Testosterone Support", "spend": 18494.0, "s2s": 0.6198, "cps": 283.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/c_1812991160493189.mp4", "launch": "2026-03-25", "motivator": "M-PROBLEM", "motivator_variant": "M-PROBLEM \u2192 Lack of Spontaneity / Erectile Dysfunction", "hook_archetype": "Curiosity-Gap", "visual_format": "UGC Organic Content Video", "visual_style": "Elevated Native", "voice_persona": "VP-F2534", "sales_formula": "PAS+", "hook": "I can't stay erect. Wait, so you never have spontaneous sex with your wife?! No, never! Literally all of our intimacy has to take place in a very specific window. So you have a cal", "transcription": "Scheduling Sex?! Cute or Mood-killer I can't stay erect. Actor portrayals Wait, so you never have spontaneous sex with your wife?! No, never! Literally all of our intimacy has to take place in a very specific window. So you have a calendar invite every time you have sex? I just have to plan ahead because I have to take a pill before. Okay, that used to be me and my husband before I discovered Sex Rx + Testosterone Support through Hims. Sex Rx + Testosterone Support Okay, wait, I dated a guy who had a prescription for that. They were like, no complaints, like zero complaints. Okay. All right. So, so what's so different about this? He takes one pill daily, so there's no more setting alarms or ", "cluster": "high"}, {"ad_id": "120234775055790472", "name": "20251119_TS_1.31.36-VideoTS-J378V1C-Adapt1-P1SexRxClimaxControl-SW3FemaleFriendConvo-RedButtonsFlags-FB-FF-vf17_Video_ClimaxControl_CCT3v3_GST_CCLP", "campaign": "Zeus_20251114_Prospecting_Sales_ZeusASC-1DC", "product": "Hims Sex Rx + Climax Control", "spend": 18142.0, "s2s": 0.6854, "cps": 277.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120234775055790472.mp4", "launch": "2025-11-19", "motivator": "M-PROBLEM", "motivator_variant": "M-PROBLEM \n Premature ejaculation / Performance anxiety", "hook_archetype": "Challenge-Dare", "visual_format": "UGC Video Skits", "visual_style": "Produced TS Hybrid", "voice_persona": "VP-MIXED", "sales_formula": "PAS+", "hook": "Put your flag down if your man ejaculates too soon more than 3 out of 5 times you have sex. 2 out of 5 times?", "transcription": "Put your flag down if your man ejaculates too soon more than 3 out of 5 times you have sex. Most men don't know THIS premature ejaculation secret Put your flag down if your man ejaculates too soon Actor portrayals 2 out of 5 times? Ever? Girl, WHAT?? Girl, what? How? My husband gets so anxious about sex. My husband gets so anxious about sex. He's ejaculating so quickly these days. He's ejaculating so quickly these days. before my man got prescribed That used to be us before my man got prescribed Sex Rx + Climax Control through Hims. Sex Rx + Climax Control through Hims. It combines tadalafil, It combines tadalafil, the same active ingredient as Cialis\u00ae, and PE treatment. the same active ingr", "cluster": "high"}, {"ad_id": "120240147963040472", "name": "20260323_TS_1.42.35-VideoTS-J644V1B-Adapt2-P1SexRxClimaxControl-SW3SexOutcomes-UGCMontage-FB-FF-NewGC_Video_ClimaxControl_CCT3v3_GST_CCLP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "Hims ED & PE Treatment (Tadalafil)", "spend": 16127.0, "s2s": 0.7134, "cps": 280.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120240147963040472.mp4", "launch": "2026-03-24", "motivator": "M-OUTCOME", "motivator_variant": "M-OUTCOME \n Improved Sexual Performance & Confidence", "hook_archetype": "Before-After", "visual_format": "UGC Testimonial Video", "visual_style": "Elevated Native", "voice_persona": "none", "sales_formula": "OS", "hook": "We had sex every night this week for the first time in 4 years all thanks to this. Weak erections are common with age, but most men underestimate how quickly they can go back to ha", "transcription": "We had sex every night this week We had sex every night this week for the first time in 4 years for the first time in 4 years Actor portrayals all thanks to this. all thanks to THIS Weak erections are common with age, Weak erections are common with age, but most men underestimate but most men underestimate how quickly they can go back to having sex like they used to. how quickly they can go back to having sex like they used to. So what's the secret? So what's the secret? Hims changed everything for us. Hims changed everything for us. Find personalized treatments for your man and his needs Find personalized treatments for your man and his needs starting from less than $2 a day with this free ", "cluster": "high"}], "prod_low": [{"product": "Hims Sex Rx + Testosterone Support", "spend": 89713.0}, {"product": "Hims 3-in-1 Pill with Sildenafil", "spend": 79512.0}, {"product": "Hims 3-in-1 ED Pill", "spend": 53736.0}, {"product": "Hims 3-in-1 Pill", "spend": 49665.0}, {"product": "Hims ED Quiz", "spend": 29891.0}, {"product": "Hims Sex Rx + Climax Control", "spend": 19912.0}, {"product": "Hims Personalized ED Pill (Tadalafil + Sildenafil)", "spend": 16721.0}, {"product": "Hims Sex Rx + Climax Control (PE & ED Treatment)", "spend": 15948.0}, {"product": "Hims Sex Rx + Testosterone Support Assessment", "spend": 15328.0}, {"product": "Sex Rx + Climax Control (Tadalafil + PE Treatment)", "spend": 14847.0}, {"product": "Hims Sex Rx + Climax Control (Tadalafil + Fluoxetine)", "spend": 12717.0}, {"product": "Hims 3-in-1 Pill (Sildenafil, Tadalafil, Vitamin B-12)", "spend": 12033.0}, {"product": "hims 3-in-1 Pill", "spend": 10624.0}, {"product": "Hims Sex Rx + Climax Control (Personalized Pills for PE/ED)", "spend": 10289.0}, {"product": "Hims Sex Rx + Climax Control (Tadalafil + PE Treatment)", "spend": 9635.0}, {"product": "Hims 3-in-1 ED Pill with Tadalafil and Sildenafil", "spend": 9545.0}, {"product": "Hims Sex Rx + Multivitamin", "spend": 8158.0}, {"product": "Sex Rx + Testosterone Support through Hims", "spend": 8073.0}, {"product": "Hims Sex Rx + Testosterone Support (Tadalafil + Zinc)", "spend": 8055.0}], "prod_high": [{"product": "Hims Hard Mints", "spend": 116186.0}, {"product": "Hims Sex Rx + Climax Control", "spend": 106135.0}, {"product": "Hard Mints through Hims", "spend": 104700.0}, {"product": "Hims 3-in-1 Pill", "spend": 94426.0}, {"product": "Hims Hard Mints (Sildenafil/Tadalafil)", "spend": 91787.0}, {"product": "Hims Spontaneous Sex (Sex Rx + Testosterone Support)", "spend": 71482.0}, {"product": "Hims Hard Mints Wintergreen", "spend": 68450.0}, {"product": "Hims Sex Chews (Tadalafil and Sildenafil)", "spend": 47281.0}, {"product": "Hims Tadalafil + PE Treatment", "spend": 46379.0}, {"product": "Hims Sex Rx + Climax Control 4-in-1 Treatment", "spend": 37054.0}, {"product": "Hims Sex Rx + Climax Control 4-in-1", "spend": 27577.0}, {"product": "Hims 3-in-1 Pill with Sildenafil, Tadalafil, and Vitamin B-12", "spend": 24500.0}, {"product": "Hims Sex Rx + Climax Control (PE Treatment)", "spend": 23401.0}, {"product": "Hims Sex Rx + Testosterone Support", "spend": 18494.0}, {"product": "Hims ED & PE Treatment (Tadalafil)", "spend": 16127.0}, {"product": "hims 3-in-1 pill", "spend": 16073.0}, {"product": "Hims Sex Rx+ Climax Control", "spend": 16072.0}, {"product": "Hims 3-in-1 Pill (Sildenafil & Tadalafil)", "spend": 15255.0}, {"product": "Hims Sex Rx + Climax Control (Tadalafil + PE Treatment)", "spend": 14784.0}, {"product": "Hims PE Treatment with Tadalafil", "spend": 14418.0}, {"product": "Hims Sex Rx + Climax Control Pill", "spend": 12408.0}, {"product": "Hims Climax Control Pill", "spend": 11970.0}, {"product": "Hims Sex Rx + Climax Control (PE & ED Treatment)", "spend": 11797.0}, {"product": "Hims Sex Chews (Tadalafil & Sildenafil)", "spend": 11486.0}, {"product": "Hims 3-in-1 Pill (Sildenafil, Tadalafil, Vitamin B-12)", "spend": 10498.0}, {"product": "Generic for Viagra (Sildenafil) through Hims", "spend": 7963.0}, {"product": "Hims Climax Control", "spend": 7841.0}, {"product": "Hims Sex Rx + Climax Control (Tadalafil)", "spend": 7691.0}], "weekly": [{"week": "2026-02-16", "s2s": 0.6284315434472494, "spend": 193476.0}, {"week": "2026-02-23", "s2s": 0.5833348095525998, "spend": 205096.0}, {"week": "2026-03-02", "s2s": 0.652714125196997, "spend": 220181.0}, {"week": "2026-03-09", "s2s": 0.6756125590156898, "spend": 209690.0}, {"week": "2026-03-16", "s2s": 0.6310242549842602, "spend": 228720.0}, {"week": "2026-03-23", "s2s": 0.6003064075667186, "spend": 255963.0}, {"week": "2026-03-30", "s2s": 0.52806812225067, "spend": 217553.0}, {"week": "2026-04-06", "s2s": 0.5326604621124628, "spend": 277941.0}], "prod_trend": [{"product": "Hims Sex Rx + Climax Control", "early_spend": 86682.0, "late_spend": 89181.0, "early_s2s": 0.7240055282526937, "late_s2s": 0.7461888731904779, "delta_s2s": 0.022183344937784177}, {"product": "Hims 3-in-1 Pill", "early_spend": 25604.0, "late_spend": 134525.0, "early_s2s": 0.5212991680987346, "late_s2s": 0.583867032150158, "delta_s2s": 0.06256786405142345}, {"product": "Hims Sex Rx + Testosterone Support", "early_spend": 46873.0, "late_spend": 90486.0, "early_s2s": 0.47351011669831244, "late_s2s": 0.4226279369184183, "delta_s2s": -0.05088217977989412}, {"product": "Hims Hard Mints", "early_spend": 76739.0, "late_spend": 43886.0, "early_s2s": 0.6246574649135381, "late_s2s": 0.6465734311625575, "delta_s2s": 0.02191596624901937}, {"product": "Hard Mints through Hims", "early_spend": 65207.0, "late_spend": 39491.0, "early_s2s": 0.6754862852147775, "late_s2s": 0.6975141272695045, "delta_s2s": 0.022027842054726965}, {"product": "Hims Hard Mints (Sildenafil/Tadalafil)", "early_spend": 31013.0, "late_spend": 60775.0, "early_s2s": 0.80014383645568, "late_s2s": 0.5832538955162484, "delta_s2s": -0.2168899409394316}, {"product": "Hims 3-in-1 Pill with Sildenafil", "early_spend": 19539.0, "late_spend": 60175.0, "early_s2s": 0.31340400225190646, "late_s2s": 0.20774779393435813, "delta_s2s": -0.10565620831754832}, {"product": "Hims Spontaneous Sex (Sex Rx + Testosterone Support)", "early_spend": 42300.0, "late_spend": 29181.0, "early_s2s": 0.7414345390070922, "late_s2s": 0.730576323635242, "delta_s2s": -0.010858215371850166}, {"product": "Hims Hard Mints Wintergreen", "early_spend": 50280.0, "late_spend": 5658.0, "early_s2s": 0.6585617104216388, "late_s2s": 0.5106315482502651, "delta_s2s": -0.14793016217137367}, {"product": "Hims 3-in-1 ED Pill", "early_spend": 5246.0, "late_spend": 48615.0, "early_s2s": 0.6022612466641251, "late_s2s": 0.3975192821145737, "delta_s2s": -0.20474196454955135}, {"product": "Hims Sex Chews (Tadalafil and Sildenafil)", "early_spend": 12559.0, "late_spend": 34721.0, "early_s2s": 0.7425458077872441, "late_s2s": 0.7021417960312202, "delta_s2s": -0.04040401175602393}, {"product": "Hims Tadalafil + PE Treatment", "early_spend": 0.0, "late_spend": 46379.0, "early_s2s": null, "late_s2s": 0.6633644321783565, "delta_s2s": null}, {"product": "Hims Sex Rx + Climax Control (Tadalafil + PE Treatment)", "early_spend": 21904.0, "late_spend": 18534.0, "early_s2s": 0.7419710555149744, "late_s2s": 0.5340729955756987, "delta_s2s": -0.2078980599392758}, {"product": "Hims Sex Rx + Climax Control 4-in-1 Treatment", "early_spend": 25022.0, "late_spend": 12033.0, "early_s2s": 0.7580974582367517, "late_s2s": 0.9075492312806449, "delta_s2s": 0.14945177304389323}, {"product": "Hims ED Quiz", "early_spend": 26969.0, "late_spend": 2922.0, "early_s2s": 0.573054514442508, "late_s2s": 0.0, "delta_s2s": -0.573054514442508}, {"product": "Hims Sex Rx + Climax Control (PE & ED Treatment)", "early_spend": 27745.0, "late_spend": 0.0, "early_s2s": 0.6099679185438818, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Sex Rx + Climax Control 4-in-1", "early_spend": 3065.0, "late_spend": 24511.0, "early_s2s": 1.0, "late_s2s": 0.8213596630084453, "delta_s2s": -0.17864033699155468}, {"product": "Hims Sex Rx + Climax Control (PE Treatment)", "early_spend": 23402.0, "late_spend": 3746.0, "early_s2s": 0.7116366934450046, "late_s2s": 0.6903360918312866, "delta_s2s": -0.02130060161371794}, {"product": "Hims 3-in-1 Pill with Sildenafil, Tadalafil, and Vitamin B-12", "early_spend": 4727.0, "late_spend": 22417.0, "early_s2s": 0.763394499682674, "late_s2s": 0.5782734754873533, "delta_s2s": -0.18512102419532073}, {"product": "Hims Sex Rx + Multivitamin", "early_spend": 11080.0, "late_spend": 13351.0, "early_s2s": 0.6054957581227437, "late_s2s": 0.2971645120215714, "delta_s2s": -0.3083312461011723}, {"product": "Hims 3-in-1 Pill (Sildenafil, Tadalafil, Vitamin B-12)", "early_spend": 6320.0, "late_spend": 15649.0, "early_s2s": 0.786105, "late_s2s": 0.4597950603872452, "delta_s2s": -0.32630993961275484}, {"product": "Hims Sex Rx + Climax Control Pill", "early_spend": 1382.0, "late_spend": 17872.0, "early_s2s": 0.14978292329956586, "late_s2s": 0.7810482822291853, "delta_s2s": 0.6312653589296194}, {"product": "Hims Personalized ED Pill (Tadalafil + Sildenafil)", "early_spend": 16720.0, "late_spend": 0.0, "early_s2s": 0.4010914413875598, "late_s2s": null, "delta_s2s": null}, {"product": "Hims ED & PE Treatment (Tadalafil)", "early_spend": 0.0, "late_spend": 16127.0, "early_s2s": null, "late_s2s": 0.7356124635704099, "delta_s2s": null}, {"product": "Hims Sex Rx+ Climax Control", "early_spend": 0.0, "late_spend": 16117.0, "early_s2s": null, "late_s2s": 0.7683701805546939, "delta_s2s": null}, {"product": "hims 3-in-1 pill", "early_spend": 14555.0, "late_spend": 1518.0, "early_s2s": 0.803570697354861, "late_s2s": 0.6667000000000001, "delta_s2s": -0.1368706973548609}, {"product": "Hims Sex Rx + Testosterone Support (Tadalafil + Zinc)", "early_spend": 1402.0, "late_spend": 14070.0, "early_s2s": 1.0, "late_s2s": 0.4632926439232409, "delta_s2s": -0.5367073560767591}, {"product": "Hims Sex Rx + Testosterone Support Assessment", "early_spend": 15329.0, "late_spend": 0.0, "early_s2s": 0.3850529127796986, "late_s2s": null, "delta_s2s": null}, {"product": "Hims 3-in-1 Pill (Sildenafil & Tadalafil)", "early_spend": 13756.0, "late_spend": 1499.0, "early_s2s": 0.719772317534167, "late_s2s": 0.7143000000000002, "delta_s2s": -0.005472317534166882}, {"product": "Sex Rx + Climax Control (Tadalafil + PE Treatment)", "early_spend": 0.0, "late_spend": 14846.0, "early_s2s": null, "late_s2s": 0.39105174457766406, "delta_s2s": null}, {"product": "Hims PE Treatment with Tadalafil", "early_spend": 6726.0, "late_spend": 7692.0, "early_s2s": 0.75, "late_s2s": 0.6927145865834633, "delta_s2s": -0.0572854134165367}, {"product": "Hims Generic for Viagra (Sildenafil)", "early_spend": 13555.0, "late_spend": 0.0, "early_s2s": 0.41891826632239026, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Sex Rx + Climax Control (Tadalafil + Fluoxetine)", "early_spend": 7470.0, "late_spend": 5246.0, "early_s2s": 0.6597732530120481, "late_s2s": 0.5856495234464354, "delta_s2s": -0.07412372956561275}, {"product": "Hims Climax Control Pill", "early_spend": 11970.0, "late_spend": 0.0, "early_s2s": 0.6534752380952381, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Sex Chews (Tadalafil & Sildenafil)", "early_spend": 11359.0, "late_spend": 0.0, "early_s2s": 0.4756625759309798, "late_s2s": null, "delta_s2s": null}, {"product": "hims 3-in-1 Pill", "early_spend": 9642.0, "late_spend": 0.0, "early_s2s": 0.24338767890479154, "late_s2s": null, "delta_s2s": null}, {"product": "Sex Rx + Testosterone Support through Hims", "early_spend": 0.0, "late_spend": 9630.0, "early_s2s": null, "late_s2s": 0.36703102803738313, "delta_s2s": null}, {"product": "Hims 3-in-1 ED Pill with Tadalafil and Sildenafil", "early_spend": 0.0, "late_spend": 9545.0, "early_s2s": null, "late_s2s": 0.168405322158198, "delta_s2s": null}, {"product": "Hims Sex Rx + Climax Control pill", "early_spend": 7334.0, "late_spend": 1641.0, "early_s2s": 0.6604926779383692, "late_s2s": 1.0, "delta_s2s": 0.3395073220616308}, {"product": "Generic for Viagra (Sildenafil) through Hims", "early_spend": 8230.0, "late_spend": 0.0, "early_s2s": 0.6478797083839611, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Climax Control", "early_spend": 0.0, "late_spend": 7841.0, "early_s2s": null, "late_s2s": 0.62348039790843, "delta_s2s": null}, {"product": "Hims Sex Rx+ Climax Control pill", "early_spend": 6507.0, "late_spend": 1131.0, "early_s2s": 0.8261, "late_s2s": 0.6667000000000001, "delta_s2s": -0.15939999999999988}, {"product": "Hims 3-in-1 Personalized ED Pill (Tadalafil + Sildenafil)", "early_spend": 0.0, "late_spend": 7462.0, "early_s2s": null, "late_s2s": 0.2472, "delta_s2s": null}, {"product": "Hims Sex Rx + Climax Control (Tadalafil)", "early_spend": 1639.0, "late_spend": 5639.0, "early_s2s": 0.6273611958511287, "late_s2s": 0.6176516403617663, "delta_s2s": -0.009709555489362365}, {"product": "Hims Sex Rx + Testosterone Support (Tadalafil)", "early_spend": 0.0, "late_spend": 6548.0, "early_s2s": null, "late_s2s": 0.6837118051313379, "delta_s2s": null}, {"product": "Hims Sex Rx + Hair Health Pill", "early_spend": 6359.0, "late_spend": 0.0, "early_s2s": 0.45880372700110084, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Sex Rx + Climax Control (Personalized Pills for PE/ED)", "early_spend": 2393.0, "late_spend": 3913.0, "early_s2s": 0.8711142081069788, "late_s2s": 0.25588014311270124, "delta_s2s": -0.6152340649942776}, {"product": "Hims Sex Rx + Climax Control Personalized Pills", "early_spend": 5734.0, "late_spend": 0.0, "early_s2s": 1.0, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Sex Rx Personalized Pills", "early_spend": 5245.0, "late_spend": 0.0, "early_s2s": 0.40381513822688275, "late_s2s": null, "delta_s2s": null}, {"product": "3-in-1 Pill through hims", "early_spend": 3891.0, "late_spend": 1323.0, "early_s2s": 0.7123, "late_s2s": 0.5, "delta_s2s": -0.21230000000000004}, {"product": "Hims 3-in-1 Pill (Sildenafil)", "early_spend": 4492.0, "late_spend": 0.0, "early_s2s": 0.39466113089937666, "late_s2s": null, "delta_s2s": null}, {"product": "Hims 3-in-1 Personalized ED Pill", "early_spend": 4311.0, "late_spend": 0.0, "early_s2s": 0.8395963813500348, "late_s2s": null, "delta_s2s": null}, {"product": "Generic for Viagra\u00ae through Hims", "early_spend": 4115.0, "late_spend": 0.0, "early_s2s": 0.8073906682867558, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Hard Mints (Tadalafil & Sildenafil for ED)", "early_spend": 0.0, "late_spend": 4067.0, "early_s2s": null, "late_s2s": 1.0, "delta_s2s": null}, {"product": "Hims Tadalafil for ED/PE", "early_spend": 0.0, "late_spend": 3660.0, "early_s2s": null, "late_s2s": 1.0, "delta_s2s": null}, {"product": "Hims Sex Rx+ Climax Control (Tadalafil + Early Climax Treatment)", "early_spend": 0.0, "late_spend": 3580.0, "early_s2s": null, "late_s2s": 0.4606835474860335, "delta_s2s": null}, {"product": "Hims Generic for Viagra (Sildenafil) Quiz", "early_spend": 3410.0, "late_spend": 0.0, "early_s2s": 0.17888563049853373, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Men's Health Solutions (Sex Rx, Hair Health, Testosterone Support) Quiz", "early_spend": 0.0, "late_spend": 3346.0, "early_s2s": null, "late_s2s": 0.125, "delta_s2s": null}, {"product": "Hims Premature Ejaculation Treatment with Tadalafil", "early_spend": 0.0, "late_spend": 3099.0, "early_s2s": null, "late_s2s": 1.0, "delta_s2s": null}, {"product": "Hims 2-in-1 Sex Rx + Testosterone Support (Tadalafil + Zinc)", "early_spend": 3089.0, "late_spend": 0.0, "early_s2s": 0.32065393331175135, "late_s2s": null, "delta_s2s": null}, {"product": "Generic for Viagra through Hims", "early_spend": 2875.0, "late_spend": 0.0, "early_s2s": 1.0, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Men's Health Portfolio (ED, PE, Hair Loss, Testosterone, Energy)", "early_spend": 2765.0, "late_spend": 0.0, "early_s2s": 0.6969258589511754, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Sex Rx + Climax Control (PE/ED Treatment)", "early_spend": 0.0, "late_spend": 2516.0, "early_s2s": null, "late_s2s": 0.7742448330683624, "delta_s2s": null}, {"product": "Hims Tadalafil + PE Treatment Pill", "early_spend": 0.0, "late_spend": 2400.0, "early_s2s": null, "late_s2s": 1.0, "delta_s2s": null}, {"product": "Hims Sex Life Goal Personalization Quiz", "early_spend": 2115.0, "late_spend": 0.0, "early_s2s": 0.0, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Hard Mints with Sildenafil and Tadalafil", "early_spend": 0.0, "late_spend": 1887.0, "early_s2s": null, "late_s2s": 0.4326974032856386, "delta_s2s": null}, {"product": "Hims Sex Rx + Climax Control Treatment", "early_spend": 1801.0, "late_spend": 0.0, "early_s2s": 0.37500666296501944, "late_s2s": null, "delta_s2s": null}, {"product": "Hims 3-in-1 Pill with Sildenafil, Tadalafil, and B-12", "early_spend": 0.0, "late_spend": 1639.0, "early_s2s": null, "late_s2s": 0.3669920683343502, "delta_s2s": null}, {"product": "Hims ED Treatment Quiz", "early_spend": 1606.0, "late_spend": 0.0, "early_s2s": 0.19738480697384808, "late_s2s": null, "delta_s2s": null}, {"product": "Hims 3-in-1 Pill (Sildenafil, Tadalafil, B-12)", "early_spend": 1414.0, "late_spend": 0.0, "early_s2s": 0.2857, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Sex Rx + Testosterone Support Daily Pill", "early_spend": 0.0, "late_spend": 1413.0, "early_s2s": null, "late_s2s": 0.5714, "delta_s2s": null}, {"product": "Hims Sex Rx + Testosterone Support with Tadalafil", "early_spend": 0.0, "late_spend": 1300.0, "early_s2s": null, "late_s2s": 1.0, "delta_s2s": null}, {"product": "Hims ED & PE Treatment", "early_spend": 0.0, "late_spend": 1243.0, "early_s2s": null, "late_s2s": 0.0, "delta_s2s": null}, {"product": "Hims Sex Rx + Climax Control 2-in-1 compounded pill eligibility quiz", "early_spend": 1208.0, "late_spend": 0.0, "early_s2s": 0.6757, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Sex Rx + Climax Control 2-in-1 Pill", "early_spend": 0.0, "late_spend": 874.0, "early_s2s": null, "late_s2s": 0.5091533180778032, "delta_s2s": null}, {"product": "Hims Personalized Daily Treatment for Men's Sexual Health", "early_spend": 832.0, "late_spend": 0.0, "early_s2s": 0.0, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Sex Rx + Climax Control (PE Treatment with Tadalafil)", "early_spend": 0.0, "late_spend": 822.0, "early_s2s": null, "late_s2s": 0.19099756690997566, "delta_s2s": null}, {"product": "Hims Sex Chews (Sildenafil/Tadalafil)", "early_spend": 790.0, "late_spend": 0.0, "early_s2s": 0.33203430379746834, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Generic for Viagra", "early_spend": 768.0, "late_spend": 0.0, "early_s2s": 1.0, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Sex Rx + Multivitamin pill", "early_spend": 746.0, "late_spend": 0.0, "early_s2s": 1.0, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Daily ED Treatment", "early_spend": 367.0, "late_spend": 305.0, "early_s2s": 1.0, "late_s2s": 0.0, "delta_s2s": -1.0}, {"product": "Hims Sex Rx + Testosterone Support pill", "early_spend": 0.0, "late_spend": 552.0, "early_s2s": null, "late_s2s": 0.0, "delta_s2s": null}, {"product": "Hims 3-in-1 Pill for Erection Issues", "early_spend": 235.0, "late_spend": 258.0, "early_s2s": 1.0, "late_s2s": 1.0, "delta_s2s": 0.0}, {"product": "Hims Sex Rx + Climax Control 2-in-1 pill", "early_spend": 0.0, "late_spend": 439.0, "early_s2s": null, "late_s2s": 0.6667000000000001, "delta_s2s": null}, {"product": "Hims 2-in-1 ED & PE Pill", "early_spend": 0.0, "late_spend": 364.0, "early_s2s": null, "late_s2s": 1.0, "delta_s2s": null}, {"product": "Hims Sex Chews", "early_spend": 363.0, "late_spend": 0.0, "early_s2s": 1.0, "late_s2s": null, "delta_s2s": null}, {"product": "Hims 2-in-1 Pills for Premature Ejaculation and Erectile Dysfunction", "early_spend": 0.0, "late_spend": 278.0, "early_s2s": null, "late_s2s": 0.0, "delta_s2s": null}, {"product": "Hims Climax Control (PE Treatment)", "early_spend": 215.0, "late_spend": 0.0, "early_s2s": 0.8362790697674419, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Sex Rx + Climax Control (Tadalafil and Sildenafil)", "early_spend": 183.0, "late_spend": 0.0, "early_s2s": 1.0, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Personalized Daily Treatment Options for ED/PE", "early_spend": 110.0, "late_spend": 0.0, "early_s2s": 1.0, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Generic Viagra (Sildenafil)", "early_spend": 100.0, "late_spend": 0.0, "early_s2s": 1.0, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Sex Rx + Climax Control (Tadalafil and PE Treatment)", "early_spend": 0.0, "late_spend": 100.0, "early_s2s": null, "late_s2s": 1.0, "delta_s2s": null}, {"product": "Hims 3-in-1 ED Pill (Tadalafil + Sildenafil + B12)", "early_spend": 0.0, "late_spend": 81.0, "early_s2s": null, "late_s2s": 1.0, "delta_s2s": null}, {"product": "Hims Generic for Viagra (Sildenafil) 95% Cheaper", "early_spend": 60.0, "late_spend": 0.0, "early_s2s": 1.0, "late_s2s": null, "delta_s2s": null}, {"product": "Hims Multi-Product / Personalized Treatments", "early_spend": 0.0, "late_spend": 58.0, "early_s2s": null, "late_s2s": 0.0, "delta_s2s": null}, {"product": "Hims Sexual Health Treatments", "early_spend": 26.0, "late_spend": 0.0, "early_s2s": 0.0, "late_s2s": null, "delta_s2s": null}], "motivator_low": [{"label": "M-OUTCOME", "spend": 278936.0, "s2s": 0.3688417977600597}, {"label": "M-PROBLEM", "spend": 195466.0, "s2s": 0.4405297877891808}], "motivator_high": [{"label": "M-OUTCOME", "spend": 773351.0, "s2s": 0.6880675746200626}, {"label": "M-PROBLEM", "spend": 278884.0, "s2s": 0.6971113681674103}], "format_low": [{"label": "Produced Infomercial Video", "spend": 103121.0, "s2s": 0.4182862811648453}, {"label": "Product Demo Infomercial Video", "spend": 90136.0, "s2s": 0.23866627318718384}, {"label": "UGC Organic Content Video", "spend": 94118.0, "s2s": 0.47397075160968144}, {"label": "UGC Testimonial Video", "spend": 94161.0, "s2s": 0.4426253884304542}, {"label": "UGC Video Skits", "spend": 81486.0, "s2s": 0.40085388901160934}, {"label": "Visual-Selling Infomercial Video", "spend": 11380.0, "s2s": 0.474}], "format_high": [{"label": "Produced Infomercial Video", "spend": 253931.0, "s2s": 0.6909946237363693}, {"label": "Product Demo Infomercial Video", "spend": 159490.0, "s2s": 0.6350456392250298}, {"label": "UGC Organic Content Video", "spend": 158418.0, "s2s": 0.6466825682687574}, {"label": "UGC Testimonial Video", "spend": 216715.0, "s2s": 0.7337686186927532}, {"label": "UGC Video Skits", "spend": 218359.0, "s2s": 0.6964196007492248}, {"label": "Visual-Selling Infomercial Video", "spend": 45322.0, "s2s": 0.7997938308106438}], "hook_low": [{"label": "Before-After", "spend": 90136.0, "s2s": 0.23866627318718384}, {"label": "Challenge-Dare", "spend": 55903.0, "s2s": 0.3584464590451318}, {"label": "Contrast-Reveal", "spend": 32049.0, "s2s": 0.39846119379699835}, {"label": "Curiosity-Gap", "spend": 250210.0, "s2s": 0.4538577726709564}, {"label": "Testimonial-Lead", "spend": 37946.0, "s2s": 0.48935663047488537}, {"label": "UGC-Native", "spend": 8158.0, "s2s": 0.3116}], "hook_high": [{"label": "Before-After", "spend": 236084.0, "s2s": 0.6879430719574389}, {"label": "Challenge-Dare", "spend": 18142.0, "s2s": 0.6854}, {"label": "Contrast-Reveal", "spend": 7841.0, "s2s": 0.7051999999999999}, {"label": "Curiosity-Gap", "spend": 602926.0, "s2s": 0.6934807551838865}, {"label": "Product-Demo", "spend": 14418.0, "s2s": 0.6923}, {"label": "Testimonial-Lead", "spend": 16072.0, "s2s": 0.75}, {"label": "UGC-Native", "spend": 52052.0, "s2s": 0.6946144682240836}], "persona_low": [{"label": "VP-F2534", "spend": 244067.0, "s2s": 0.46022000721113465}, {"label": "VP-MIXED", "spend": 8055.0, "s2s": 0.3915999999999999}, {"label": "none", "spend": 64397.0, "s2s": 0.38513586191903354}], "persona_high": [{"label": "VP-F2534", "spend": 478351.0, "s2s": 0.6996252120304964}, {"label": "VP-F3544", "spend": 137131.0, "s2s": 0.6823681698521853}, {"label": "VP-MIXED", "spend": 92830.0, "s2s": 0.6520838759021869}, {"label": "generic", "spend": 42278.0, "s2s": 0.7031000000000001}, {"label": "none", "spend": 209895.0, "s2s": 0.676498893256152}], "same_hook_pair": [{"ad_id": "120239774448650472", "name": "20260309_TS_1.33.31-VideoTS-J584V1A-Adapt1-P9-3in1Pill-SW3SexOutcomes-SexFrequency-FB-FF-ShortGFXVideo_3in1Pill_GHSHFS_GST_3in1LP", "campaign": "Zeus_20251114_Prospecting_Sales_ZeusASC-1DC", "product": "Hims 3-in-1 Pill (Sildenafil, Tadalafil, Vitamin B-12)", "spend": 12033.0, "s2s": 0.4413, "cps": 289.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120239774448650472.mp4", "launch": "2026-03-09", "motivator": "M-OUTCOME", "motivator_variant": "Increased Sexual Performance/Frequency", "hook_archetype": "Curiosity-Gap", "visual_format": "Produced Infomercial Video", "visual_style": "Produced TS Hybrid", "voice_persona": "VP-F2534", "sales_formula": "OS", "hook": "Yes, we had sex 17 times last month and THIS was the secret key!", "transcription": "Yes, we had sex 17 times last month and THIS was the secret key! YES, we had sex 17 times last month and THIS was the secret key! Actor portrayal The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not approve or verify compounded drug product for safety, effectiveness, or quality. The compounding pharmacy prepares compounded drug products for a patient only after a licensed healthcare provider who will determine if a prescription is appropriate. Restrictions apply. See website for full details and important safety information. 3-in-1 pill Stay hard longer Fast-acting with sildenafil Long-lasting with tadalafil Added Support with vitamin B-12 ", "cluster": "low"}, {"ad_id": "120239344796800472", "name": "20260203_TS_1.33.31-VideoTS-J584V1A-Adapt1-P9-3in1Pill-SW3SexOutcomes-SexFrequency-FB-FF-ShortGFXVideo_3in1Pill_GHSHFS_GST_3in1LP", "campaign": "Zeus_20250110_Prospecting_Sales_Zeus_TubeScience", "product": "hims 3-in-1 pill", "spend": 16073.0, "s2s": 0.78, "cps": 255.0, "url": "https://datateam-ts-assets.s3.amazonaws.com/video_history/516177082083005/a_120239344796800472.mp4", "launch": "2026-03-03", "motivator": "M-OUTCOME", "motivator_variant": "M-OUTCOME \n\u2192 Increased Sexual Performance/Frequency", "hook_archetype": "Curiosity-Gap", "visual_format": "UGC Testimonial Video", "visual_style": "Produced TS Hybrid", "voice_persona": "VP-F2534", "sales_formula": "OS", "hook": "Yes, we had sex 17 times last month and THIS was the secret key!", "transcription": "Yes, we had sex 17 times last month and THIS was the secret key! YES, we had sex 17 times last month and THIS was the secret key! Actor portrayal The featured product is a compounded drug product and has not been approved by the FDA. The FDA does not approve or verify compounded drug for safety, effectiveness, or quality. The prescribing of any compounded drug is ultimately at the discretion of a healthcare provider who will determine if a prescription is appropriate. Restrictions apply. See website for full details and important safety information. 3-in-1 pill Stay hard longer Fast-acting with sildenafil Long-lasting with tadalafil Added Support with vitamin B-12 hims Simulated interaction.", "cluster": "high"}]};
+
+// ========== Password gate ==========
+// Password hash approach: SHA-256 of passphrase, compared to pre-computed hash.
+// Passphrase: "HimsTS2026!" (case-sensitive)
+const GATE_HASH = 'aad48a492d2563ea20ef6214c1a8c2c5ec1cd630ff751c415b71468abfb946e3';
+
+async function sha256(s) {
+    const buf = new TextEncoder().encode(s);
+    const hash = await crypto.subtle.digest('SHA-256', buf);
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+document.getElementById('gate-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const v = document.getElementById('gate-input').value.trim();
+    const h = await sha256(v);
+    if (h === GATE_HASH) {
+        sessionStorage && sessionStorage.setItem('him_dash_auth', '1');
+        unlock();
+    } else {
+        document.getElementById('gate-err').textContent = 'Incorrect passphrase';
+    }
+});
+
+function unlock() {
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('dash').style.display = 'block';
+    init();
+}
+
+// auto-unlock if in session
+if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('him_dash_auth') === '1') {
+    unlock();
+}
+
+// ========== Formatting helpers ==========
+function fmtPct(v, dec=1) { if (v==null) return '—'; return (v*100).toFixed(dec)+'%'; }
+function fmtMoney(v) {
+    if (v == null) return '—';
+    if (v >= 1e6) return '$'+(v/1e6).toFixed(2)+'M';
+    if (v >= 1e3) return '$'+(v/1e3).toFixed(1)+'K';
+    return '$'+v.toFixed(0);
+}
+function fmtNum(v) { if (v==null) return '—'; return v.toLocaleString(); }
+
+// ========== Core rendering ==========
+const FOREST = '#1F3A2B';
+const CINNAMON = '#C6622E';
+const POSITIVE = '#2E6B47';
+const NEGATIVE = '#B23A2F';
+const CREAM = '#F4EFE6';
+const MUTED = '#7B7468';
+
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.color = '#3A3A3A';
+Chart.defaults.borderColor = '#D9D0BE';
+
+function init() {
+    renderSummary();
+    renderTrendCharts();
+    renderDimCharts();
+    setupFilters();
+    renderLowGrid();
+    renderHighGrid();
+    renderEvidence();
+    renderSBS();
+    setupNavScrollSpy();
+}
+
+function renderSummary() {
+    const s = DATA.summary;
+    document.getElementById('period').textContent = s.week_start + ' → ' + s.week_end;
+    document.getElementById('kpi-drop').textContent = '-' + s.drop_pts.toFixed(1) + 'pts';
+    document.getElementById('kpi-low-s2s').textContent = fmtPct(s.low_s2s);
+    document.getElementById('kpi-low-spend').textContent = fmtMoney(s.low_spend);
+    document.getElementById('kpi-low-count').textContent = s.low_ad_count;
+    document.getElementById('kpi-high-s2s').textContent = fmtPct(s.high_s2s);
+    document.getElementById('kpi-high-spend').textContent = fmtMoney(s.high_spend);
+    document.getElementById('kpi-high-count').textContent = s.high_ad_count;
+}
+
+function renderTrendCharts() {
+    // Weekly S2S line
+    new Chart(document.getElementById('chart-weekly').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: DATA.weekly.map(w => w.week),
+            datasets: [{
+                label: 'Spend-weighted S2S',
+                data: DATA.weekly.map(w => w.s2s * 100),
+                borderColor: CINNAMON, backgroundColor: CINNAMON+'22',
+                tension: 0.25, fill: true, pointRadius: 4, pointHoverRadius: 6, borderWidth: 2.5
+            }, {
+                label: 'Benchmark (60%)',
+                data: DATA.weekly.map(() => 60),
+                borderColor: FOREST, borderDash: [5,5], pointRadius: 0, borderWidth: 1.5, fill: false
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { usePointStyle: true } } },
+            scales: { y: { ticks: { callback: v => v.toFixed(0)+'%' }, min: 40, max: 80 } }
+        }
+    });
+    new Chart(document.getElementById('chart-weekly-spend').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: DATA.weekly.map(w => w.week),
+            datasets: [{
+                label: 'Weekly spend',
+                data: DATA.weekly.map(w => w.spend),
+                backgroundColor: FOREST, borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => fmtMoney(c.parsed.y) } } },
+            scales: { y: { ticks: { callback: v => fmtMoney(v) } } }
+        }
+    });
+
+    // Product line delta
+    const prods = DATA.prod_trend.filter(p => p.delta_s2s != null && (p.early_spend+p.late_spend) > 10000)
+        .slice(0, 10);
+    new Chart(document.getElementById('chart-prod-delta').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: prods.map(p => p.product),
+            datasets: [
+                { label: 'Early 4wk S2S', data: prods.map(p => p.early_s2s*100), backgroundColor: MUTED, borderRadius: 4 },
+                { label: 'Late 4wk S2S', data: prods.map(p => p.late_s2s*100), backgroundColor: CINNAMON, borderRadius: 4 }
+            ]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { usePointStyle: true } } },
+            scales: { x: { ticks: { callback: v => v+'%' } } }
+        }
+    });
+}
+
+function dimChart(canvasId, lowArr, highArr) {
+    // Join by label, take top 6 by combined spend
+    const map = {};
+    [...lowArr, ...highArr].forEach(d => { if(!map[d.label]) map[d.label] = 0; map[d.label] += d.spend; });
+    const topLabels = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,6).map(x => x[0]);
+    const lookup = (arr, label) => { const f = arr.find(d => d.label === label); return f ? f.s2s*100 : 0; };
+
+    new Chart(document.getElementById(canvasId).getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: topLabels,
+            datasets: [
+                { label: 'Low cluster S2S', data: topLabels.map(l => lookup(lowArr, l)), backgroundColor: NEGATIVE, borderRadius: 4 },
+                { label: 'High cluster S2S', data: topLabels.map(l => lookup(highArr, l)), backgroundColor: POSITIVE, borderRadius: 4 }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { usePointStyle: true } } },
+            scales: { y: { ticks: { callback: v => v+'%' } } }
+        }
+    });
+}
+
+function renderDimCharts() {
+    dimChart('chart-motivator', DATA.motivator_low, DATA.motivator_high);
+    dimChart('chart-format', DATA.format_low, DATA.format_high);
+    dimChart('chart-hook', DATA.hook_low, DATA.hook_high);
+    dimChart('chart-persona', DATA.persona_low, DATA.persona_high);
+}
+
+function renderEvidence() {
+    // Product mix for low
+    const topLow = DATA.prod_low.slice(0,3);
+    const totalLow = DATA.prod_low.reduce((a,b)=>a+b.spend,0);
+    document.getElementById('ev-prod').innerHTML =
+        'In low cluster: ' + topLow.map(p => `<strong>${p.product}</strong> (${((p.spend/totalLow)*100).toFixed(0)}% of low-cluster spend, ${fmtMoney(p.spend)})`).join(' · ');
+
+    // Motivator evidence
+    const mLow = DATA.motivator_low.find(m => m.label === 'M-OUTCOME');
+    const mHigh = DATA.motivator_high.find(m => m.label === 'M-OUTCOME');
+    if (mLow && mHigh) {
+        document.getElementById('ev-motivator').innerHTML =
+            `M-OUTCOME S2S — low: ${fmtPct(mLow.s2s)} (${fmtMoney(mLow.spend)}) vs high: ${fmtPct(mHigh.s2s)} (${fmtMoney(mHigh.spend)}). Same motivator class, ~${((mHigh.s2s-mLow.s2s)*100).toFixed(0)}pt execution gap.`;
+    }
+    // Format evidence
+    const fTop = DATA.format_low.sort((a,b)=>b.spend-a.spend).slice(0,3);
+    document.getElementById('ev-format').innerHTML =
+        fTop.map(f => `<strong>${f.label}</strong>: ${fmtPct(f.s2s)} S2S, ${fmtMoney(f.spend)}`).join(' · ');
+
+    // Persona evidence
+    const pLow = DATA.persona_low.sort((a,b)=>b.spend-a.spend).slice(0,3);
+    const totalPLow = DATA.persona_low.reduce((a,b)=>a+b.spend,0);
+    document.getElementById('ev-persona').innerHTML =
+        pLow.map(p => `<strong>${p.label}</strong>: ${((p.spend/totalPLow)*100).toFixed(0)}% of low spend @ ${fmtPct(p.s2s)}`).join(' · ');
+}
+
+// ========== Filters & ad grids ==========
+function setupFilters() {
+    const lowProds = [...new Set(DATA.low_ads.map(a => a.product).filter(Boolean))].sort();
+    const lowMots = [...new Set(DATA.low_ads.map(a => a.motivator).filter(Boolean))].sort();
+    const lowFmts = [...new Set(DATA.low_ads.map(a => a.visual_format).filter(Boolean))].sort();
+    const highProds = [...new Set(DATA.high_ads.map(a => a.product).filter(Boolean))].sort();
+
+    const addOpt = (sel, v) => { const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); };
+    lowProds.forEach(v => addOpt(document.getElementById('filter-product-low'), v));
+    lowMots.forEach(v => addOpt(document.getElementById('filter-motivator-low'), v));
+    lowFmts.forEach(v => addOpt(document.getElementById('filter-format-low'), v));
+    highProds.forEach(v => addOpt(document.getElementById('filter-product-high'), v));
+
+    ['filter-product-low','filter-motivator-low','filter-format-low','sort-low'].forEach(id =>
+        document.getElementById(id).addEventListener('change', renderLowGrid));
+    ['filter-product-high','sort-high'].forEach(id =>
+        document.getElementById(id).addEventListener('change', renderHighGrid));
+}
+
+function makeAdCard(a) {
+    const s2sClass = a.s2s != null ? (a.s2s < 0.6 ? 'low' : 'high') : '';
+    const hook = a.hook || 'Hook not classified';
+    const transcript = a.transcription || 'No transcript.';
+    return `
+<div class="ad-card cluster-${a.cluster}" data-ad-id="${a.ad_id}">
+    <video controls preload="none" poster="" playsinline>
+        <source src="${a.url}" type="video/mp4">
+        Sorry, your browser can't play this video.
+    </video>
+    <div class="ad-body">
+        <div class="ad-metrics">
+            <div class="metric"><span class="metric-label">Spend</span><span class="metric-value">${fmtMoney(a.spend)}</span></div>
+            <div class="metric s2s ${s2sClass}"><span class="metric-label">D0 S2S</span><span class="metric-value">${fmtPct(a.s2s)}</span></div>
+            <div class="metric"><span class="metric-label">CPS</span><span class="metric-value">${a.cps != null ? '$'+a.cps.toFixed(0) : '—'}</span></div>
+        </div>
+        <div class="tags">
+            ${a.product ? `<span class="tag prod">${a.product}</span>` : ''}
+            ${a.motivator ? `<span class="tag">${a.motivator}</span>` : ''}
+            ${a.hook_archetype ? `<span class="tag">${a.hook_archetype}</span>` : ''}
+            ${a.visual_format ? `<span class="tag">${a.visual_format}</span>` : ''}
+            ${a.voice_persona ? `<span class="tag">${a.voice_persona}</span>` : ''}
+            ${a.sales_formula ? `<span class="tag">${a.sales_formula}</span>` : ''}
+        </div>
+        <div class="hook">"${hook}"</div>
+        <button class="expand" onclick="toggleTranscript('${a.ad_id}')">▸ Show transcript</button>
+        <div class="transcript">${transcript}</div>
+    </div>
+</div>`;
+}
+
+function toggleTranscript(id) {
+    const card = document.querySelector(`[data-ad-id="${id}"]`);
+    card.classList.toggle('expanded');
+    const btn = card.querySelector('.expand');
+    btn.textContent = card.classList.contains('expanded') ? '▾ Hide transcript' : '▸ Show transcript';
+}
+
+function renderLowGrid() {
+    const p = document.getElementById('filter-product-low').value;
+    const m = document.getElementById('filter-motivator-low').value;
+    const f = document.getElementById('filter-format-low').value;
+    const sort = document.getElementById('sort-low').value;
+
+    let ads = DATA.low_ads.filter(a => {
+        if (p !== 'all' && a.product !== p) return false;
+        if (m !== 'all' && a.motivator !== m) return false;
+        if (f !== 'all' && a.visual_format !== f) return false;
+        return true;
+    });
+    ads.sort((a,b) => {
+        if (sort === 's2s') return (a.s2s||99) - (b.s2s||99);
+        if (sort === 'cps') return (b.cps||0) - (a.cps||0);
+        return b.spend - a.spend;
+    });
+    document.getElementById('grid-low').innerHTML = ads.map(makeAdCard).join('');
+    document.getElementById('count-low').textContent = ads.length + ' ads';
+}
+
+function renderHighGrid() {
+    const p = document.getElementById('filter-product-high').value;
+    const sort = document.getElementById('sort-high').value;
+    let ads = DATA.high_ads.filter(a => p === 'all' || a.product === p);
+    ads.sort((a,b) => {
+        if (sort === 's2s') return (b.s2s||0) - (a.s2s||0);
+        return b.spend - a.spend;
+    });
+    document.getElementById('grid-high').innerHTML = ads.map(makeAdCard).join('');
+    document.getElementById('count-high').textContent = ads.length + ' ads';
+}
+
+function renderSBS() {
+    const wrap = document.getElementById('sbs-grid');
+    if (DATA.same_hook_pair && DATA.same_hook_pair.length === 2) {
+        wrap.innerHTML = DATA.same_hook_pair.map(makeAdCard).join('');
+    } else {
+        // fallback: take worst low and best high
+        const worst = [...DATA.low_ads].sort((a,b) => (a.s2s||99)-(b.s2s||99))[0];
+        const best = [...DATA.high_ads].sort((a,b) => (b.s2s||0)-(a.s2s||0))[0];
+        wrap.innerHTML = [worst, best].map(makeAdCard).join('');
+    }
+}
+
+// ========== Scrollspy ==========
+function setupNavScrollSpy() {
+    const links = document.querySelectorAll('nav.section-nav a');
+    const sections = [...links].map(l => document.querySelector(l.getAttribute('href')));
+    window.addEventListener('scroll', () => {
+        const scrollY = window.scrollY + 80;
+        let activeIdx = 0;
+        sections.forEach((s, i) => { if (s && s.offsetTop <= scrollY) activeIdx = i; });
+        links.forEach((l, i) => l.classList.toggle('active', i === activeIdx));
+    });
+}
+
+window.toggleTranscript = toggleTranscript;
+</script>
+</body>
+</html>
