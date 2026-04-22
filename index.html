@@ -330,6 +330,63 @@ footer.foot {
     .commonality { grid-template-columns: 70px 1fr; }
     .commonality .tag-big { font-size: 28px; }
 }
+
+/* ===== Compact BLUF banner + takeaways ===== */
+.bluf-banner {
+    background: linear-gradient(135deg, #8A2A1F 0%, #C0392B 100%);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    margin: 14px 0 16px;
+    color: #fff;
+}
+.bluf-banner-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; }
+.bluf-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.12em; opacity: 0.8; font-weight: 600; margin-bottom: 4px; }
+.bluf-value { font-family: 'Inter', sans-serif; font-weight: 900; font-size: 34px; letter-spacing: -0.03em; line-height: 1; }
+.bluf-sub { font-size: 12px; opacity: 0.85; margin-top: 4px; line-height: 1.4; }
+
+.takeaways-compact { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
+.tk {
+    background: var(--him-cream-2); border-radius: var(--radius-sm); padding: 14px 16px;
+    border-left: 3px solid var(--him-accent);
+}
+.tk-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+.tk-num {
+    font-family: 'Inter', sans-serif; font-weight: 900; font-size: 20px;
+    color: var(--him-accent-deep); letter-spacing: -0.02em; line-height: 1;
+}
+.tk h4 { font-size: 13.5px; color: var(--him-forest); line-height: 1.3; font-weight: 700; margin: 0; }
+.tk ul { list-style: none; padding: 0; margin: 0; }
+.tk li { font-size: 12.5px; line-height: 1.45; padding: 6px 0; border-top: 1px solid rgba(0,0,0,0.06); }
+.tk li:first-child { border-top: none; padding-top: 0; }
+.tk li a { color: var(--him-ink-soft); text-decoration: none; display: block; }
+.tk li a:hover { color: var(--him-accent-deep); }
+.tk li a strong { color: var(--him-forest); }
+
+.bluf-footnote {
+    font-size: 12px; color: var(--him-muted); line-height: 1.55; max-width: 1000px;
+    padding-top: 10px; border-top: 1px dashed var(--him-border); margin-top: 6px;
+}
+.bluf-footnote strong { color: var(--him-ink-soft); }
+
+@media (max-width: 960px) { .takeaways-compact { grid-template-columns: 1fr; } }
+
+/* ===== Section collapse/expand ===== */
+section.panel .panel-toggle {
+    background: none; border: 1px solid var(--him-border);
+    width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+    font-size: 15px; line-height: 1; color: var(--him-muted);
+    font-family: inherit; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-left: 12px;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    padding: 0; flex-shrink: 0;
+    float: right;
+}
+section.panel .panel-toggle:hover { background: var(--him-cream-2); color: var(--him-forest); }
+section.panel h2 { overflow: hidden; }  /* contain the floated toggle */
+section.panel.collapsed > *:not(.label):not(h2) { display: none !important; }
+section.panel.collapsed { padding-bottom: 22px; }
+section.panel.collapsed .panel-toggle { background: var(--him-forest); color: var(--him-cream); border-color: var(--him-forest); }
 </style>
 </head>
 <body>
@@ -375,147 +432,63 @@ footer.foot {
 <section class="panel" id="summary">
     <div class="label">Bottom line up front</div>
     <h2>The S2S drop is costing subscribers. Pause the weakest ads.</h2>
-    <p class="lede">D0 Submit-to-Subscribe on TubeScience video has fallen ~9.5 points across the 8 weeks ending 4/6. We previously flagged that cost per submit held flat — but once you do the math properly, <strong>cost per <em>subscribe</em> is up ~33% and the low-S2S cluster is 27% more expensive to acquire subscribers than the high cluster</strong>. The drag is concentrated in two product lines (3-in-1 Pill and Sex Rx + Testosterone) — pause the weakest ads there while the structural fixes come online. Every finding below is backed by a proof section; click to jump.</p>
-    <p style="color:var(--him-muted);font-size:13.5px;max-width:860px;margin-bottom:20px;line-height:1.6;">
-        <strong style="color:var(--him-ink-soft);">A note on confidence levels:</strong> The descriptive patterns below (which product lines, which ad cohorts) are well-supported by the data. The <em>why</em> behind those patterns — product clarity, persona mismatch, missing proof rails — are our strongest working hypotheses, not proven causes. Delivery variance also swings the same ad by ~40 S2S points (see Signal Check), so pausing at the audience/placement level may ultimately be more precise than pausing at the ad level. Pull MTA CAC by product line to validate — but the Cost per Subscribe data already supports pausing now, and every week we wait is ~$30K more wasted at the cluster level.
+
+    <!-- Compact Cost per Subscribe banner -->
+    <div class="bluf-banner">
+        <div class="bluf-banner-row">
+            <div>
+                <div class="bluf-label">Low-S2S · Cost / Subscribe</div>
+                <div class="bluf-value" id="kpi-low-cps-sub">—</div>
+                <div class="bluf-sub">27% premium vs. high cluster</div>
+            </div>
+            <div>
+                <div class="bluf-label">High-S2S · Cost / Subscribe</div>
+                <div class="bluf-value" id="kpi-high-cps-sub">—</div>
+                <div class="bluf-sub">"Best" cluster, still ~24% above historical ~$350</div>
+            </div>
+            <div>
+                <div class="bluf-label">Weekly Cost / Subscribe trend</div>
+                <div class="bluf-value" id="kpi-weekly-cps-sub-trend">—</div>
+                <div class="bluf-sub"><span id="kpi-weekly-cps-sub-range">—</span> over 8 weeks</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compact 3-across Takeaways -->
+    <div class="takeaways-compact">
+        <div class="tk">
+            <div class="tk-head"><span class="tk-num">01</span><h4>Two product lines dragging both S2S & subscriber cost.</h4></div>
+            <ul>
+                <li><a href="#recs"><strong>Pause</strong> biggest low-S2S spenders on 3-in-1 Pill & Sx+Testo — every week of delay ≈ $30K wasted at the cluster level</a></li>
+                <li><a href="#trend">3-in-1 Pill spend 30x'd while S2S fell 11pts; Sx+Testo fell 8pts at +40% spend</a></li>
+                <li><a href="#commonality-5">Vague product naming correlates with weaker S2S — "3-in-1 Pill" tells the viewer nothing about benefit</a></li>
+                <li><a href="#commonality-1">71% of low-cluster spend lives on those 2 product lines</a></li>
+            </ul>
+        </div>
+        <div class="tk">
+            <div class="tk-head"><span class="tk-num">02</span><h4>Same hooks & formats in both clusters — context separates them.</h4></div>
+            <ul>
+                <li><a href="#sbs">Same ad, <strong>2x Cost per Subscribe</strong> ($327 vs. $655) depending on delivery context</a></li>
+                <li><a href="#commonality-2">Outcome hooks at 69% S2S (high) vs. 37% (low) — proof rails appear to be the differentiator</a></li>
+                <li><a href="#commonality-3">Non-testimonial formats drag at ~24% S2S, cluster on weak product lines</a></li>
+                <li><a href="#commonality-4">77% of low-cluster spend uses a young-female voice (25–34)</a></li>
+            </ul>
+        </div>
+        <div class="tk">
+            <div class="tk-head"><span class="tk-num">03</span><h4>Structural moves + a KPI pitch.</h4></div>
+            <ul>
+                <li><a href="#recs">Separate ASCs by product category (enables per-product lift studies)</a></li>
+                <li><a href="#recs">Format rebalance on 3-in-1 & Sx+Testo (testimonial + 35+ voice + proof rails)</a></li>
+                <li><a href="#recs">Looker access for the TS strategy team</a></li>
+                <li><a href="#recs"><strong>KPI pitch:</strong> optimize against <em>Cost per Subscribe + HDYHAU</em>, not Cost per Submit — with product-specific targets</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Tiny caveat footnote (replaces the long confidence/correction paragraphs) -->
+    <p class="bluf-footnote">
+        <strong>Why the reframe:</strong> Cost per Subscribe = Cost per Submit ÷ S2S%. CPS Submit held flat ($229 → $262), which is what earlier reads pointed to; but CPS Subscribe rose $363 → $482 (+33%) over the same 8 weeks as S2S softened. Low-cluster $551 vs. high-cluster $433 = 27% premium. <strong>D0 S2S is a proxy, not ground truth</strong> — pull MTA CAC by product line to firm up the story. Delivery variance also swings the same ad by ~40 S2S pts, so pausing at the placement or audience level may be more precise than at the ad level for borderline cases.
     </p>
-
-    <div style="background: #FDF2F0; border: 1px solid var(--him-negative); border-radius: var(--radius); padding: 22px 26px; margin-bottom: 22px; position: relative; overflow: hidden;">
-        <div style="position: absolute; top: 0; left: 0; width: 5px; height: 100%; background: var(--him-negative);"></div>
-        <h4 style="font-size: 16px; color: var(--him-forest); margin-bottom: 8px; font-weight: 800; letter-spacing: -0.015em;">Correction: earlier reads on this deck said cost per subscribe was flat. Once you use the right math, it's not.</h4>
-        <p style="font-size: 14.5px; color: var(--him-ink-soft); line-height: 1.6; margin: 0 0 8px 0; max-width: 860px;">Cost per Subscribe = Cost per Submit ÷ S2S% (a subscribe is a subset of submits, so it's always more expensive). Cost per <em>submit</em> held flat ($229 → $262) — that's the number we'd originally pointed to. But once you run the full calculation, cost per <em>subscribe</em> rose from <strong>$363 → $482 (+33%)</strong> over the same 8 weeks, because the S2S conversion rate softened underneath it. And at the cluster level, low-S2S ads cost <strong>$551</strong> per subscribe vs. <strong>$433</strong> for high-S2S ads — a 27% subscriber-cost premium.</p>
-        <p style="font-size: 14.5px; color: var(--him-ink-soft); line-height: 1.6; margin: 0; max-width: 860px;"><strong>Net: the pause call Brian is making this week is the right one.</strong> Full MTA CAC by product line would still firm up the story (D0 S2S is a proxy, not a truth), but the subscribe-cost arithmetic already supports turning off the worst offenders and rebalancing into the winners.</p>
-    </div>
-
-    <div class="kpi-grid">
-        <div class="kpi danger">
-            <div class="k-label">Portfolio S2S drop</div>
-            <div class="k-value" id="kpi-drop">—</div>
-            <div class="k-sub">2/16 → 4/6 (spend-weighted)</div>
-        </div>
-        <div class="kpi danger">
-            <div class="k-label">Low-S2S cluster avg</div>
-            <div class="k-value" id="kpi-low-s2s">—</div>
-            <div class="k-sub"><span id="kpi-low-spend">—</span> spend across <span id="kpi-low-count">—</span> ads</div>
-        </div>
-        <div class="kpi win">
-            <div class="k-label">High-S2S cluster avg</div>
-            <div class="k-value" id="kpi-high-s2s">—</div>
-            <div class="k-sub"><span id="kpi-high-spend">—</span> spend across <span id="kpi-high-count">—</span> ads</div>
-        </div>
-        <div class="kpi">
-            <div class="k-label">Benchmark (client)</div>
-            <div class="k-value">60%</div>
-            <div class="k-sub">D0 S2S target floor</div>
-        </div>
-    </div>
-
-    <div style="background: linear-gradient(135deg, #8A2A1F 0%, #C0392B 100%); border-radius: var(--radius); padding: 28px 32px; margin-bottom: var(--gap); color: white;">
-        <div style="font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 700; opacity: 0.85; margin-bottom: 16px;">Cost per Subscribe — the actual downstream cost</div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-            <div>
-                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; opacity: 0.75; font-weight: 600; margin-bottom: 6px;">Low-S2S cluster · Cost / Subscribe</div>
-                <div style="font-family: 'Inter', sans-serif; font-weight: 900; font-size: 42px; letter-spacing: -0.03em; line-height: 1;" id="kpi-low-cps-sub">—</div>
-                <div style="font-size: 13px; opacity: 0.85; margin-top: 6px;">Cost / submit: $<span id="kpi-low-cps-submit">—</span> ÷ S2S → 27% premium vs. high cluster</div>
-            </div>
-            <div>
-                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; opacity: 0.75; font-weight: 600; margin-bottom: 6px;">High-S2S cluster · Cost / Subscribe</div>
-                <div style="font-family: 'Inter', sans-serif; font-weight: 900; font-size: 42px; letter-spacing: -0.03em; line-height: 1;" id="kpi-high-cps-sub">—</div>
-                <div style="font-size: 13px; opacity: 0.85; margin-top: 6px;">The "best" cluster, but still ~24% above historical ~$350. Top-20 cards shown below spend-weight to ~$354.</div>
-            </div>
-            <div>
-                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; opacity: 0.75; font-weight: 600; margin-bottom: 6px;">Weekly Cost / Subscribe trend</div>
-                <div style="font-family: 'Inter', sans-serif; font-weight: 900; font-size: 42px; letter-spacing: -0.03em; line-height: 1;" id="kpi-weekly-cps-sub-trend">—</div>
-                <div style="font-size: 13px; opacity: 0.85; margin-top: 6px;"><span id="kpi-weekly-cps-sub-range">—</span> over 8 weeks</div>
-            </div>
-        </div>
-        <p style="font-size: 14px; opacity: 0.9; margin-top: 18px; max-width: 860px; line-height: 1.6;">Cost per Subscribe is what actually ties to new subscription revenue. It rose ~33% as S2S dropped — because every point of S2S you lose pushes more spend to the same subscriber. The low-S2S cluster pays 27% more per subscriber than the high cluster, and the gap is widening week over week. <strong>Pausing the worst low-S2S ads — particularly the biggest spenders on 3-in-1 Pill and Sx+Testo — is the correct move. Reallocate into the high-S2S cluster where $1 goes ~27% further.</strong></p>
-    </div>
-
-    <div class="spacer-md"></div>
-
-    <h3 style="font-size:22px;color:var(--him-forest);margin-bottom:8px;font-weight:800;letter-spacing:-0.02em;">Three things to take away</h3>
-    <p style="color:var(--him-ink-soft);font-size:14px;margin-bottom:18px;max-width:820px;">Each takeaway has 2–4 supporting findings. Every line links to the chart, table, or video behind it.</p>
-
-    <div class="findings">
-        <!-- Meta 1 -->
-        <div class="meta-finding">
-            <div class="meta-header">
-                <span class="meta-num">01</span>
-                <h4>Two product lines are dragging both S2S and subscriber cost — pause the weakest ads now.</h4>
-            </div>
-            <div class="sub-findings">
-                <a class="sub" href="#recs" style="border-color: var(--him-negative); background: #FDF2F0;">
-                    <span><strong>Priority zero:</strong> Pause the biggest-spend, lowest-S2S ads in 3-in-1 Pill and Sx+Testo. The Cost per Subscribe math is unambiguous — low cluster at <strong>$551</strong> vs. high cluster at <strong>$433</strong> (27% premium), and weekly Cost per Subscribe up 33% over the 8-week window. Every week of delay costs ~$30K at the cluster level. Pull MTA CAC by product line to firm up the story, but the pause call doesn't need to wait for it.</span>
-                    <span class="sub-link">Actions →</span>
-                </a>
-                <a class="sub" href="#trend">
-                    <span>3-in-1 Pill went from <strong>$4K to $123K weekly spend</strong> (30x) while S2S fell 11 points. Sex Rx + Testosterone fell 8 points at +40% spend. Climax Control, Hard Mints, and Sex Chews held steady.</span>
-                    <span class="sub-link">Stacked spend chart →</span>
-                </a>
-                <a class="sub" href="#commonality-5">
-                    <span>Products with clearer names and mechanisms (Climax Control, Hard Mints) hold strong S2S. <strong>"3-in-1 Pill" is described by ingredient count, not benefit</strong>; "Testosterone Support" is vague about what it does. The pattern suggests product clarity may be a contributing factor — the vaguer the product, the more the landing page has to close.</span>
-                    <span class="sub-link">Product clarity →</span>
-                </a>
-                <a class="sub" href="#commonality-1">
-                    <span><strong>71% of the low-performing spend</strong> lives on those same two product lines — 3-in-1 Pill and Sex Rx + Testosterone.</span>
-                    <span class="sub-link">Evidence →</span>
-                </a>
-            </div>
-        </div>
-
-        <!-- Meta 2 -->
-        <div class="meta-finding">
-            <div class="meta-header">
-                <span class="meta-num">02</span>
-                <h4>The same hooks and formats appear in both clusters — execution and context separate winners from losers.</h4>
-            </div>
-            <div class="sub-findings">
-                <a class="sub" href="#commonality-2">
-                    <span>Outcome-focused hooks work at <strong>~69% S2S</strong> in the high cluster and <strong>~37% S2S</strong> in the low cluster. Same motivator type, ~32-point gap — correlated with missing proof rails (clinical citations, active-ingredient equivalence, partner-voice framing), though product line and delivery context also differ between clusters.</span>
-                    <span class="sub-link">Evidence →</span>
-                </a>
-                <a class="sub" href="#sbs">
-                    <span>The <strong>exact same ad</strong> ("we had sex 17 times last month") scores 41% S2S in one delivery context and 79% in another — a 38-point gap that translates into <strong>~2x cost per subscribe</strong> ($655 vs. $327). Delivery / audience composition matters as much as the creative itself, which is why pausing at the placement or audience level may be more precise than pausing at the ad level.</span>
-                    <span class="sub-link">Signal check →</span>
-                </a>
-                <a class="sub" href="#commonality-3">
-                    <span>Non-testimonial formats (Hybrid Product Feature Callout, Infomercial) drag at <strong>~24% S2S</strong> and cluster heavily into the two weak product lines. Direct-to-Camera Testimonial wins — but only when the product itself lands.</span>
-                    <span class="sub-link">Format breakdown →</span>
-                </a>
-                <a class="sub" href="#commonality-4">
-                    <span><strong>77% of low-cluster spend</strong> uses a young female voice (25–34). This is confounded with product line (those voices mostly run on 3-in-1 Pill and Sx+Testo), but the pattern is worth testing: does an older or male voice persona perform differently on these same products?</span>
-                    <span class="sub-link">Persona mismatch →</span>
-                </a>
-            </div>
-        </div>
-
-        <!-- Meta 3 -->
-        <div class="meta-finding">
-            <div class="meta-header">
-                <span class="meta-num">03</span>
-                <h4>Three structural moves — and a data-access ask.</h4>
-            </div>
-            <div class="sub-findings">
-                <a class="sub" href="#recs">
-                    <span><strong>Media structure:</strong> Separate product categories into individual scaling ASCs. Enables lift studies by product line so the next conversation is driven by measured incrementality, not blended averages.</span>
-                    <span class="sub-link">Actions →</span>
-                </a>
-                <a class="sub" href="#recs">
-                    <span><strong>Format rebalance:</strong> On 3-in-1 Pill and Sx+Testo, down-weight Hybrid Product Feature Callout and Product Demo Infomercial, move budget to Direct-to-Camera Testimonial with 35+ voice casting, and script in explicit proof rails.</span>
-                    <span class="sub-link">Actions →</span>
-                </a>
-                <a class="sub" href="#recs">
-                    <span><strong>Looker access:</strong> Direct access to the Hims Looker instance would let TubeScience run analyses like this faster and validate MTA CAC by product line without waiting for CSV exports.</span>
-                    <span class="sub-link">Actions →</span>
-                </a>
-                <a class="sub" href="#recs" style="border-color: var(--him-accent); background: #F0F2F8;">
-                    <span><strong>KPI reframe (worth a conversation):</strong> Optimize against <strong>Cost per Subscribe + HDYHAU</strong> instead of Cost per Submit — with product-specific targets. The winning ads will shift, and a lot of downstream creative-strategy decisions get sharper if the top-of-funnel KPI is the right one.</span>
-                    <span class="sub-link">Pitch →</span>
-                </a>
-            </div>
-        </div>
-    </div>
 </section>
 
 <!-- ===== Trend ===== -->
@@ -1072,31 +1045,56 @@ function init() {
     renderEvidence();
     renderSBS();
     setupNavScrollSpy();
+    setupCollapsibleSections();
+}
+
+function setupCollapsibleSections() {
+    document.querySelectorAll('section.panel').forEach(panel => {
+        const header = panel.querySelector('h2');
+        if (!header || header.querySelector('.panel-toggle')) return;
+        const btn = document.createElement('button');
+        btn.className = 'panel-toggle';
+        btn.type = 'button';
+        btn.setAttribute('aria-label', 'Collapse section');
+        btn.setAttribute('aria-expanded', 'true');
+        btn.textContent = '−';
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const collapsed = panel.classList.toggle('collapsed');
+            btn.textContent = collapsed ? '+' : '−';
+            btn.setAttribute('aria-expanded', String(!collapsed));
+            btn.setAttribute('aria-label', collapsed ? 'Expand section' : 'Collapse section');
+        });
+        header.appendChild(btn);
+    });
+    // Expand target section when a nav link is clicked
+    document.querySelectorAll('nav.section-nav a[href^="#"]').forEach(link => {
+        link.addEventListener('click', () => {
+            const target = document.querySelector(link.getAttribute('href'));
+            if (target && target.classList.contains('collapsed')) {
+                const btn = target.querySelector('.panel-toggle');
+                if (btn) btn.click();
+            }
+        });
+    });
 }
 
 function renderSummary() {
     const s = DATA.summary;
-    document.getElementById('period').textContent = s.week_start + ' → ' + s.week_end;
-    document.getElementById('kpi-drop').textContent = '-' + s.drop_pts.toFixed(1) + 'pts';
-    document.getElementById('kpi-low-s2s').textContent = fmtPct(s.low_s2s);
-    document.getElementById('kpi-low-spend').textContent = fmtMoney(s.low_spend);
-    document.getElementById('kpi-low-count').textContent = s.low_ad_count;
-    document.getElementById('kpi-high-s2s').textContent = fmtPct(s.high_s2s);
-    document.getElementById('kpi-high-spend').textContent = fmtMoney(s.high_spend);
-    document.getElementById('kpi-high-count').textContent = s.high_ad_count;
+    const setText = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.textContent = val; };
+
+    setText('period', s.week_start + ' → ' + s.week_end);
 
     // Cost per Subscribe = Cost per Submit / S2S%
     const lowCpsSub = (s.low_cps && s.low_s2s) ? s.low_cps / s.low_s2s : null;
     const highCpsSub = (s.high_cps && s.high_s2s) ? s.high_cps / s.high_s2s : null;
-    const setText = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.textContent = '$' + val.toFixed(0); };
-    setText('kpi-low-cps-sub', lowCpsSub);
-    setText('kpi-high-cps-sub', highCpsSub);
-    setText('kpi-low-cps-sub-q1', lowCpsSub);
-    setText('kpi-high-cps-sub-q3', highCpsSub);
-    setText('kpi-low-cps-submit', s.low_cps);
-    setText('kpi-high-cps-submit', s.high_cps);
+    const setMoney = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.textContent = '$' + val.toFixed(0); };
+    setMoney('kpi-low-cps-sub', lowCpsSub);
+    setMoney('kpi-high-cps-sub', highCpsSub);
+    setMoney('kpi-low-cps-sub-q1', lowCpsSub);
+    setMoney('kpi-high-cps-sub-q3', highCpsSub);
 
-    // Weekly Cost per Subscribe — first week vs last week
+    // Weekly Cost per Subscribe trend — first week vs last
     if (DATA.weekly && DATA.weekly.length) {
         const first = DATA.weekly[0];
         const last = DATA.weekly[DATA.weekly.length - 1];
@@ -1104,15 +1102,13 @@ function renderSummary() {
         const lastSub = (last.cps && last.s2s) ? last.cps / last.s2s : null;
         if (firstSub && lastSub) {
             const pct = ((lastSub / firstSub) - 1) * 100;
-            const el = document.getElementById('kpi-weekly-cps-sub-trend');
-            if (el) el.textContent = '+' + pct.toFixed(0) + '%';
-            const elR = document.getElementById('kpi-weekly-cps-sub-range');
-            if (elR) elR.textContent = '$' + firstSub.toFixed(0) + ' → $' + lastSub.toFixed(0);
+            setText('kpi-weekly-cps-sub-trend', '+' + pct.toFixed(0) + '%');
+            setText('kpi-weekly-cps-sub-range', '$' + firstSub.toFixed(0) + ' → $' + lastSub.toFixed(0));
         }
     }
 
-    document.getElementById('fn-low-count').textContent = s.low_ad_count;
-    document.getElementById('fn-high-count').textContent = s.high_ad_count;
+    setText('fn-low-count', String(s.low_ad_count));
+    setText('fn-high-count', String(s.high_ad_count));
 }
 
 function renderTrendCharts() {
