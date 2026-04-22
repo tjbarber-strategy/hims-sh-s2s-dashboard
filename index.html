@@ -421,7 +421,7 @@ footer.foot {
             <div>
                 <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; opacity: 0.75; font-weight: 600; margin-bottom: 6px;">High-S2S cluster · Cost / Subscribe</div>
                 <div style="font-family: 'Inter', sans-serif; font-weight: 900; font-size: 42px; letter-spacing: -0.03em; line-height: 1;" id="kpi-high-cps-sub">—</div>
-                <div style="font-size: 13px; opacity: 0.85; margin-top: 6px;">Cost / submit: $<span id="kpi-high-cps-submit">—</span> ÷ S2S → the winners on both axes</div>
+                <div style="font-size: 13px; opacity: 0.85; margin-top: 6px;">The "best" cluster, but still ~24% above historical ~$350. Top-20 cards shown below spend-weight to ~$354.</div>
             </div>
             <div>
                 <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; opacity: 0.75; font-weight: 600; margin-bottom: 6px;">Weekly Cost / Subscribe trend</div>
@@ -509,6 +509,10 @@ footer.foot {
                     <span><strong>Looker access:</strong> Direct access to the Hims Looker instance would let TubeScience run analyses like this faster and validate MTA CAC by product line without waiting for CSV exports.</span>
                     <span class="sub-link">Actions →</span>
                 </a>
+                <a class="sub" href="#recs" style="border-color: var(--him-accent); background: #F0F2F8;">
+                    <span><strong>KPI reframe (worth a conversation):</strong> Optimize against <strong>Cost per Subscribe + HDYHAU</strong> instead of Cost per Submit — with product-specific targets. The winning ads will shift, and a lot of downstream creative-strategy decisions get sharper if the top-of-funnel KPI is the right one.</span>
+                    <span class="sub-link">Pitch →</span>
+                </a>
             </div>
         </div>
     </div>
@@ -543,7 +547,7 @@ footer.foot {
     <div class="spacer-md"></div>
     <div class="chart-card" id="product-table">
         <h3>Full product performance — verified against Hims reporting</h3>
-        <p style="color:var(--him-ink-soft);font-size:14px;margin-bottom:16px;max-width:860px;">Includes MTA-attributed CPA and ARPU — metrics that go beyond the D0 S2S proxy. This is the complete picture of how each product line is actually performing downstream.</p>
+        <p style="color:var(--him-ink-soft);font-size:14px;margin-bottom:16px;max-width:860px;">MTA-attributed CPA and ARPU come from Hims internal reporting (what ultimately closes). The final column — <strong>D0 Cost per Subscribe</strong> — is computed from the TS S2S classified dataset (Cost per Submit ÷ S2S%), and shows which product lines are most efficient on the D0 signal that the media team is currently optimizing against. Red on the right column is where the day-zero math is dragging even before MTA attribution catches up.</p>
 
         <div style="overflow-x:auto;">
         <table class="prod-perf-table">
@@ -554,6 +558,7 @@ footer.foot {
                     <th>CPA MTA + HDYHAU</th>
                     <th>ARPU</th>
                     <th>D0 Submit to Sub %</th>
+                    <th>D0 Cost per Subscribe</th>
                 </tr>
             </thead>
             <tbody>
@@ -563,6 +568,7 @@ footer.foot {
                     <td class="cell-yellow">$298</td>
                     <td class="cell-green">$96</td>
                     <td class="cell-green">70%</td>
+                    <td class="cell-yellow">$411</td>
                 </tr>
                 <tr>
                     <td style="text-align:left;font-weight:600;">3in1</td>
@@ -570,6 +576,7 @@ footer.foot {
                     <td class="cell-green">$253</td>
                     <td class="cell-yellow">$65</td>
                     <td class="cell-yellow">48%</td>
+                    <td class="cell-red">$522</td>
                 </tr>
                 <tr>
                     <td style="text-align:left;font-weight:600;">Hard Mints</td>
@@ -577,6 +584,7 @@ footer.foot {
                     <td class="cell-green">$234</td>
                     <td class="cell-green">$84</td>
                     <td class="cell-green">63%</td>
+                    <td class="cell-green">$361</td>
                 </tr>
                 <tr>
                     <td style="text-align:left;font-weight:600;">Testosterone</td>
@@ -584,6 +592,7 @@ footer.foot {
                     <td class="cell-yellow">$257</td>
                     <td class="cell-yellow">$73</td>
                     <td class="cell-yellow">54%</td>
+                    <td class="cell-yellow">$481</td>
                 </tr>
                 <tr>
                     <td style="text-align:left;font-weight:600;">All Product</td>
@@ -591,6 +600,7 @@ footer.foot {
                     <td class="cell-yellow">$290</td>
                     <td class="cell-yellow">$74</td>
                     <td class="cell-red">46%</td>
+                    <td style="color: var(--him-muted);">—</td>
                 </tr>
                 <tr>
                     <td style="text-align:left;font-weight:600;">Sex Chews</td>
@@ -598,6 +608,7 @@ footer.foot {
                     <td class="cell-green">$229</td>
                     <td class="cell-green">$83</td>
                     <td class="cell-green">67%</td>
+                    <td class="cell-green">$334</td>
                 </tr>
                 <tr>
                     <td style="text-align:left;font-weight:600;">Generic Viagra</td>
@@ -605,6 +616,7 @@ footer.foot {
                     <td class="cell-red">$420</td>
                     <td class="cell-red">$44</td>
                     <td class="cell-red">44%</td>
+                    <td class="cell-red">$588</td>
                 </tr>
                 <tr>
                     <td style="text-align:left;font-weight:600;">Multivitamin</td>
@@ -612,6 +624,7 @@ footer.foot {
                     <td class="cell-yellow">$314</td>
                     <td class="cell-yellow">$64</td>
                     <td class="cell-red">43%</td>
+                    <td class="cell-red">$641</td>
                 </tr>
                 <tr>
                     <td style="text-align:left;font-weight:600;">Hair</td>
@@ -619,6 +632,7 @@ footer.foot {
                     <td class="cell-yellow">$336</td>
                     <td class="cell-yellow">$64</td>
                     <td class="cell-red">30%</td>
+                    <td class="cell-yellow">$494</td>
                 </tr>
             </tbody>
             <tfoot>
@@ -628,13 +642,14 @@ footer.foot {
                     <td>$265</td>
                     <td>$80</td>
                     <td>59%</td>
+                    <td>$431</td>
                 </tr>
             </tfoot>
         </table>
         </div>
 
         <p style="color:var(--him-muted);font-size:12px;line-height:1.55;margin-top:14px;max-width:860px;">
-            <strong>Source:</strong> Hims internal reporting (verified by Camilla). Date range may differ slightly from the S2S analysis above (which covers 2/16–4/6 from the TS S2S export); directional spend and performance by product are consistent across both sources. All ads are TubeScience-created. Color coding: <span style="color:var(--him-positive);">green</span> = strong, <span style="color:var(--him-warn);">amber</span> = moderate, <span style="color:var(--him-negative);">red</span> = below target.
+            <strong>Source:</strong> Columns 2–5 are Hims internal reporting (verified by Camilla). The <strong>D0 Cost per Subscribe</strong> column is derived from the TS S2S classified dataset, so spend totals and product categorization differ slightly — "All Product" doesn't cleanly match a single product tag in the classified data, so it's shown as "—". Color coding on Cost per Subscribe: <span style="color:var(--him-positive);">green</span> &lt; $400, <span style="color:var(--him-warn);">amber</span> $400–$500, <span style="color:var(--him-negative);">red</span> &gt; $500. For reference, account-wide historical Cost per Subscribe has run closer to ~$350, so amber is already a regression versus historical norm.
         </p>
     </div>
 </section>
@@ -747,7 +762,7 @@ footer.foot {
 <section class="panel" id="q3-best">
     <div class="label">High-S2S cohort</div>
     <h2>What the best-performing ads have in common</h2>
-    <p class="lede">The top 20 ads by spend in the high-S2S cluster share several recurring patterns. Whether these patterns <em>cause</em> higher S2S or simply correlate with the product lines that happen to convert better is an open question — but these are the clearest signals for what to adapt next.</p>
+    <p class="lede">The top 20 ads by spend in the high-S2S cluster share several recurring patterns. Whether these patterns <em>cause</em> higher S2S or simply correlate with the product lines that happen to convert better is an open question — but these are the clearest signals for what to adapt next. Important context: even the "winning" cluster now sits at ~$433 spend-weighted Cost per Subscribe (amber, not green) — that's the relative winner today, but it's ~24% worse than the ~$350 historical account average, so this cohort is "best available" more than "back to baseline."</p>
 
     <div class="insight-grid" style="margin-bottom: 22px;">
         <div class="insight" style="border-left-color: var(--him-positive);">
@@ -765,13 +780,13 @@ footer.foot {
             <h4>Best single ad S2S</h4>
             <p>A Climax Control ad at 82.6% S2S — clear product, testimonial format, proof rails.</p>
         </div>
-        <div class="insight" style="border-left-color: var(--him-positive);">
-            <div class="num" style="color: var(--him-positive);" id="kpi-high-cps-sub-q3">—</div>
-            <h4>Cost per Subscribe — cheaper by 27%</h4>
-            <p>Spend-weighted across all high-S2S ads. Both axes are winning here: higher S2S <em>and</em> materially cheaper subscribers. This is where reallocated spend should land.</p>
+        <div class="insight" style="border-left-color: var(--him-warn);">
+            <div class="num" style="color: var(--him-warn);" id="kpi-high-cps-sub-q3">—</div>
+            <h4>Cost per Subscribe — the "best" cohort, but not a win</h4>
+            <p>Spend-weighted across all 42 high-S2S ads. Top-20 shown below average ~$354; the full 42-ad cluster weighs in at ~$433 because the smaller-spend ads in the long tail run more expensive. Still 27% cheaper than the low cluster, but ~24% above the ~$350 historical account average — so reallocate <em>into</em> this cohort, but treat it as damage control rather than a return to baseline.</p>
         </div>
     </div>
-    <p style="font-size: 12px; color: var(--him-muted); margin-top: -12px; margin-bottom: 18px; font-style: italic;">* Cost per Subscribe = Cost per Submit ÷ S2S%. Spend-weighted across all <span id="fn-high-count">—</span> ads in the high-S2S cluster, not just the 20 highest-spend ads shown below.</p>
+    <p style="font-size: 12px; color: var(--him-muted); margin-top: -12px; margin-bottom: 18px; font-style: italic;">* Cost per Subscribe = Cost per Submit ÷ S2S%. Spend-weighted across all <span id="fn-high-count">—</span> ads in the high-S2S cluster, not just the 20 highest-spend ads shown below. The 20 cards visible here average ~$354 spend-weighted — the full-cluster $433 is dragged up by the 22 smaller-spend ads not shown.</p>
 
     <div class="commonality">
         <div class="tag-big">✓</div>
@@ -843,6 +858,11 @@ footer.foot {
             <h4>Data access — Looker access would accelerate this work</h4>
             <p>This analysis was built from CSV exports. Direct access to the Hims Looker instance would let TubeScience run analyses like this faster — validating MTA CAC by product line, iterating on hypotheses in hours instead of days, and reducing the back-and-forth on ad-hoc data pulls. If feasible, a Looker seat for the TS strategy team would make these conversations sharper and more frequent.</p>
         </div>
+        <div class="insight" style="border-left-color: var(--him-accent-deep); grid-column: 1 / -1;">
+            <div class="num" style="color: var(--him-accent-deep);">4</div>
+            <h4>KPI reframe — optimize against Cost per Subscribe + HDYHAU, not Cost per Submit</h4>
+            <p>This whole exercise surfaces a structural issue: Cost per Submit + D0 S2S% is the metric the account is optimizing against, but the two decompose into very different "winning ads" once you do the Cost per Subscribe math. A submit-efficient ad on a low-S2S product line is materially worse than its headline number suggests, and vice versa. Three moves to consider, in increasing order of ambition: (1) <strong>Short-term:</strong> switch the account-level KPI to <strong>Cost per Subscribe + HDYHAU</strong> — a single number that combines D0 submits, S2S conversion, and the HDYHAU lift adjustment already being applied to MTA CPA. Winning ads will shift. (2) <strong>Medium-term:</strong> set <em>product-specific</em> Cost per Subscribe targets (e.g., Hard Mints gets a lower target than 3-in-1 Pill), so inherently higher-friction products aren't unfairly penalized. (3) <strong>Long-term:</strong> once subscription pLTV is well enough measured, move to a <strong>pLTV-based ROAS target</strong> per product — the cleanest expression of "what creative is actually worth scaling." Worth framing in the next SH cadence call: a lot of the creative-strategy decisions downstream of this deck get sharper if the top-of-funnel KPI is the right one.</p>
+        </div>
     </div>
 </section>
 
@@ -899,10 +919,7 @@ function unlock() {
     init();
 }
 
-// auto-unlock if in session
-if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('him_dash_auth') === '1') {
-    unlock();
-}
+// auto-unlock if in session (moved to bottom after all consts are declared)
 
 // ========== Jargon → English translation ==========
 const TRANSLATE = {
@@ -1102,10 +1119,10 @@ function renderTrendCharts() {
     // Compute per-week Cost per Subscribe = CPS(submit) / S2S
     const cpsSubSeries = DATA.weekly.map(w => (w.cps != null && w.s2s) ? w.cps / w.s2s : null);
     const hasCPS = cpsSubSeries.some(v => v != null);
-    const cpsSubMin = Math.min(...cpsSubSeries.filter(v => v != null));
     const cpsSubMax = Math.max(...cpsSubSeries.filter(v => v != null));
-    const y1Min = Math.floor((cpsSubMin - 50) / 50) * 50;
-    const y1Max = Math.ceil((cpsSubMax + 50) / 50) * 50;
+    // Start Y1 at $0 for honest scaling (was starting at $300 which exaggerated the rise)
+    const y1Min = 0;
+    const y1Max = Math.ceil((cpsSubMax + 100) / 100) * 100;
 
     const s2sDatasets = [{
         label: 'Spend-weighted S2S',
@@ -1401,6 +1418,12 @@ function setupNavScrollSpy() {
 }
 
 window.toggleTranscript = toggleTranscript;
+
+// auto-unlock if in session — placed at bottom so all module-scope consts
+// (CINNAMON, FOREST, etc.) are reachable by init() when it runs
+if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('him_dash_auth') === '1') {
+    unlock();
+}
 </script>
 </body>
 </html>
