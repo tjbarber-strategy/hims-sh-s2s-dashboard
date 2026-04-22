@@ -547,7 +547,7 @@ footer.foot {
     <div class="spacer-md"></div>
     <div class="chart-card" id="product-table">
         <h3>Full product performance — verified against Hims reporting</h3>
-        <p style="color:var(--him-ink-soft);font-size:14px;margin-bottom:16px;max-width:860px;">MTA-attributed CPA and ARPU come from Hims internal reporting (what ultimately closes). The final column — <strong>D0 Cost per Subscribe</strong> — is computed from the TS S2S classified dataset (Cost per Submit ÷ S2S%), and shows which product lines are most efficient on the D0 signal that the media team is currently optimizing against. Red on the right column is where the day-zero math is dragging even before MTA attribution catches up.</p>
+        <p style="color:var(--him-ink-soft);font-size:14px;margin-bottom:16px;max-width:860px;">MTA-attributed CPA and ARPU come from Hims internal reporting. The final column — <strong>D0 Cost per Subscribe</strong> — is a straight division on the numbers already in this table: <code>CPA MTA ÷ D0 S2S%</code>. Red is where the day-zero subscriber economics are dragging before MTA attribution catches up downstream.</p>
 
         <div style="overflow-x:auto;">
         <table class="prod-perf-table">
@@ -568,7 +568,7 @@ footer.foot {
                     <td class="cell-yellow">$298</td>
                     <td class="cell-green">$96</td>
                     <td class="cell-green">70%</td>
-                    <td class="cell-yellow">$411</td>
+                    <td class="cell-yellow">$426</td>
                 </tr>
                 <tr>
                     <td style="text-align:left;font-weight:600;">3in1</td>
@@ -576,7 +576,7 @@ footer.foot {
                     <td class="cell-green">$253</td>
                     <td class="cell-yellow">$65</td>
                     <td class="cell-yellow">48%</td>
-                    <td class="cell-red">$522</td>
+                    <td class="cell-red">$527</td>
                 </tr>
                 <tr>
                     <td style="text-align:left;font-weight:600;">Hard Mints</td>
@@ -584,7 +584,7 @@ footer.foot {
                     <td class="cell-green">$234</td>
                     <td class="cell-green">$84</td>
                     <td class="cell-green">63%</td>
-                    <td class="cell-green">$361</td>
+                    <td class="cell-green">$371</td>
                 </tr>
                 <tr>
                     <td style="text-align:left;font-weight:600;">Testosterone</td>
@@ -592,7 +592,7 @@ footer.foot {
                     <td class="cell-yellow">$257</td>
                     <td class="cell-yellow">$73</td>
                     <td class="cell-yellow">54%</td>
-                    <td class="cell-yellow">$481</td>
+                    <td class="cell-yellow">$476</td>
                 </tr>
                 <tr>
                     <td style="text-align:left;font-weight:600;">All Product</td>
@@ -600,7 +600,7 @@ footer.foot {
                     <td class="cell-yellow">$290</td>
                     <td class="cell-yellow">$74</td>
                     <td class="cell-red">46%</td>
-                    <td style="color: var(--him-muted);">—</td>
+                    <td class="cell-red">$630</td>
                 </tr>
                 <tr>
                     <td style="text-align:left;font-weight:600;">Sex Chews</td>
@@ -608,7 +608,7 @@ footer.foot {
                     <td class="cell-green">$229</td>
                     <td class="cell-green">$83</td>
                     <td class="cell-green">67%</td>
-                    <td class="cell-green">$334</td>
+                    <td class="cell-green">$342</td>
                 </tr>
                 <tr>
                     <td style="text-align:left;font-weight:600;">Generic Viagra</td>
@@ -616,7 +616,7 @@ footer.foot {
                     <td class="cell-red">$420</td>
                     <td class="cell-red">$44</td>
                     <td class="cell-red">44%</td>
-                    <td class="cell-red">$588</td>
+                    <td class="cell-red">$955</td>
                 </tr>
                 <tr>
                     <td style="text-align:left;font-weight:600;">Multivitamin</td>
@@ -624,7 +624,7 @@ footer.foot {
                     <td class="cell-yellow">$314</td>
                     <td class="cell-yellow">$64</td>
                     <td class="cell-red">43%</td>
-                    <td class="cell-red">$641</td>
+                    <td class="cell-red">$730</td>
                 </tr>
                 <tr>
                     <td style="text-align:left;font-weight:600;">Hair</td>
@@ -632,7 +632,7 @@ footer.foot {
                     <td class="cell-yellow">$336</td>
                     <td class="cell-yellow">$64</td>
                     <td class="cell-red">30%</td>
-                    <td class="cell-yellow">$494</td>
+                    <td class="cell-red">$1,120</td>
                 </tr>
             </tbody>
             <tfoot>
@@ -642,14 +642,14 @@ footer.foot {
                     <td>$265</td>
                     <td>$80</td>
                     <td>59%</td>
-                    <td>$431</td>
+                    <td>$449</td>
                 </tr>
             </tfoot>
         </table>
         </div>
 
         <p style="color:var(--him-muted);font-size:12px;line-height:1.55;margin-top:14px;max-width:860px;">
-            <strong>Source:</strong> Columns 2–5 are Hims internal reporting (verified by Camilla). The <strong>D0 Cost per Subscribe</strong> column is derived from the TS S2S classified dataset, so spend totals and product categorization differ slightly — "All Product" doesn't cleanly match a single product tag in the classified data, so it's shown as "—". Color coding on Cost per Subscribe: <span style="color:var(--him-positive);">green</span> &lt; $400, <span style="color:var(--him-warn);">amber</span> $400–$500, <span style="color:var(--him-negative);">red</span> &gt; $500. For reference, account-wide historical Cost per Subscribe has run closer to ~$350, so amber is already a regression versus historical norm.
+            <strong>Source:</strong> Hims internal reporting (verified by Camilla). The D0 Cost per Subscribe column is <code>CPA MTA ÷ D0 S2S%</code> applied directly to the numbers in this table. Color coding on Cost per Subscribe: <span style="color:var(--him-positive);">green</span> &lt; $400, <span style="color:var(--him-warn);">amber</span> $400–$500, <span style="color:var(--him-negative);">red</span> &gt; $500. For reference, account-wide historical Cost per Subscribe has run closer to ~$350, so amber is already a regression versus historical norm.
         </p>
     </div>
 </section>
