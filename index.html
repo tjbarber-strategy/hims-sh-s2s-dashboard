@@ -479,7 +479,7 @@ section.panel.collapsed .panel-toggle { background: var(--him-forest); color: va
             <ul>
                 <li><a href="#recs"><strong>Investigate the web funnel</strong> — CPS Subscribe rose across most products, not just the worst offenders</a></li>
                 <li><a href="#recs">Redo the creative plan for 3-in-1 & Testo Support (testimonial + 35+ voice + proof rails)</a></li>
-                <li><a href="#recs"><strong>Product-level:</strong> rename 3-in-1 Pill; reposition Testo Support around what it actually is (daily-cadence ED meds)</a></li>
+                <li><a href="#recs"><strong>Worth discussing together:</strong> would a clearer name help 3-in-1 Pill, and does Testo Support want to lean into a daily-cadence angle?</a></li>
                 <li><a href="#recs"><strong>Future KPI:</strong> product-specific Cost per Subscribe targets once FB ↔ S2S data is fully wired in Looker</a></li>
             </ul>
         </div>
@@ -516,6 +516,10 @@ section.panel.collapsed .panel-toggle { background: var(--him-forest); color: va
         <h3>S2S change by product line — late 4wk vs. early 4wk</h3>
         <p style="font-size:12.5px;color:var(--him-muted);margin-bottom:14px;line-height:1.5;">Each bar shows the S2S change over the 8-week window (late 4-week average minus early 4-week average). Sorted by late-4wk spend. <span style="color:var(--him-negative);font-weight:600;">Red</span> = worsening, <span style="color:var(--him-positive);font-weight:600;">green</span> = improving. Axis labels show early → late S2S for context.</p>
         <div class="canvas-wrap tall"><canvas id="chart-prod-delta"></canvas></div>
+
+        <div style="background: #F0F2F8; border-left: 3px solid var(--him-accent-deep); padding: 12px 16px; margin-top: 16px; border-radius: var(--radius-sm); font-size: 13px; line-height: 1.55; color: var(--him-ink-soft); max-width: 1000px;">
+            <strong style="color: var(--him-forest);">Worth noting — the general / umbrella-LP products fell hardest.</strong> The chart above is filtered to the top spenders, so the biggest S2S drops don't all show up. In the full per-product data, the products running against general or multi-product landing pages saw the steepest declines: <strong>ED Quiz −57pts</strong> (the umbrella LP), <strong>Sex Rx + Multivitamin −31pts</strong>, and similar patterns on the All Product, Generic Viagra, and Hair rows of the Hims reporting. These are small slices of total spend so they don't move the portfolio number much — but the pattern is another signal that the issue may not be purely product-specific. If the general LPs are softening alongside the spotlight products, a shared web-funnel factor is a real possibility worth investigating.
+        </div>
     </div>
 
     <div class="spacer-md"></div>
@@ -835,10 +839,11 @@ section.panel.collapsed .panel-toggle { background: var(--him-forest); color: va
         </div>
         <div class="insight" style="border-left-color: var(--him-accent); grid-column: 1 / -1;">
             <div class="num" style="color: var(--him-accent);">3</div>
-            <h4>Product-level fixes — rename 3-in-1 Pill; reposition Testo Support</h4>
+            <h4>Two product-level questions worth exploring together</h4>
+            <p style="font-size: 13px; color: var(--him-muted); font-style: italic; margin-bottom: 10px;">Flagging these for discussion, not prescribing — naming and positioning calls ultimately sit with the Hims brand team. These are the patterns we're seeing from the creative side.</p>
             <ol style="margin-top: 6px; padding-left: 22px; font-size: 14px; color: var(--him-ink-soft); line-height: 1.6;">
-                <li style="margin-bottom: 6px;"><strong>Rename 3-in-1 Pill.</strong> Same active ingredients as Hard Mints, just in pill form — but 48% / $527 vs. Hard Mints' 63% / $371. A clearer benefit-led name could close most of the gap with no creative or media change.</li>
-                <li><strong>Reposition Testo Support.</strong> Name is strong; friction is that the product behaves like a daily-cadence ED supplement, not a pure testosterone booster. (a) Recalibrate the CAC target to daily-supplement economics, not on-demand ED. (b) Shift creative toward the daily-cadence angle. Ro's <a href="https://ro.co/lp/erectile-dysfunction/daily-rise-gummies/" target="_blank" rel="noopener" style="color: var(--him-accent-deep);">Daily Rise Gummies</a> is the comp.</li>
+                <li style="margin-bottom: 6px;"><strong>Would a clearer name help 3-in-1 Pill?</strong> Same active ingredients as Hard Mints, just in pill form — but 48% / $527 vs. Hard Mints' 63% / $371. The Hard Mints name tells the buyer what they're getting; "3-in-1 Pill" leads with ingredient count. Worth a brand-side conversation about whether a benefit-led name could close some of that gap without a creative or media change.</li>
+                <li><strong>Does Testo Support want to lean into its daily-cadence profile?</strong> The name is strong; the friction is that the product behaves more like a daily-cadence ED supplement than a pure testosterone booster. Two things to explore: (a) whether the CAC target should be recalibrated to daily-supplement economics vs. on-demand ED; (b) whether the creative and positioning should lean into the daily-cadence angle. Ro's <a href="https://ro.co/lp/erectile-dysfunction/daily-rise-gummies/" target="_blank" rel="noopener" style="color: var(--him-accent-deep);">Daily Rise Gummies</a> is a useful comp for what that might look like.</li>
             </ol>
         </div>
         <div class="insight" style="border-left-color: var(--him-accent-deep); grid-column: 1 / -1;">
@@ -1291,12 +1296,15 @@ function renderTrendCharts() {
                     grid: { color: (ctx) => ctx.tick.value === 0 ? '#111' : '#E5E2DC' }
                 },
                 y: {
+                    afterFit: (scale) => { scale.width = 200; },  // reserve left margin for long product names
                     ticks: {
+                        autoSkip: false,
+                        font: { size: 12 },
                         callback: function(value) {
                             const p = prods[value];
                             if (!p) return '';
-                            const dir = p.delta_s2s >= 0 ? '+' : '';
-                            return `${p.product}  (${(p.early_s2s*100).toFixed(0)}% → ${(p.late_s2s*100).toFixed(0)}%)`;
+                            // Return two-line label so long product names aren't clipped
+                            return [p.product, `${(p.early_s2s*100).toFixed(0)}% → ${(p.late_s2s*100).toFixed(0)}%`];
                         }
                     }
                 }
